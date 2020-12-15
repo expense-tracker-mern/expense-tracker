@@ -118,4 +118,41 @@ router.post('/register', [
         }
     });
 
+//@route PATCH api/auth/change-password
+router.patch('/change-password', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        const { oldPassword, newPassword } = req.body;
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+        if (!isMatch) {
+            return res
+                .status(400)
+                .json({ errors: [{ msg: 'Invalid old password' }] });
+        }
+
+        if(newPassword.length < 6){
+            return res
+                .status(400)
+                .json({ errors: [{ msg: 'Please enter a password with 6 or more characters' }] });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+
+        const pwd = await bcrypt.hash(newPassword, salt);
+
+            updatePassword = await User.findOneAndUpdate(
+                { _id: req.user.id },
+                { $set: {password: pwd} },
+                { runValidators: true },
+            );
+
+        res.json("Password changed successfully!");
+    } catch (err) {
+        res.status(500).send("Error: " + err.message);
+    }
+});
+
 module.exports = router;
