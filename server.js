@@ -8,16 +8,19 @@ const app = express();
 connectDB();
 
 //Init middleware
-app.use(express.json({extended: false}));
+app.use(express.json({ extended: false }));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: false,
+  })
+);
 
-app.get('/',(req,res) => res.send('API Running'));
+app.get('/', (req, res) => res.send('API Running'));
 
 app.use('/api/auth', require('./routes/api/auth'));
+app.use('/api/transaction', require('./routes/api/transaction'));
 
 const PORT = process.env.PORT || 1000;
 
