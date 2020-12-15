@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const TransactionSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: TextTrackCue,
+    required: true,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
