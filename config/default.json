@@ -1,0 +1,3 @@
+{
+    "mongoURI": "mongodb+srv://root:123@expense-tracker.hvwvi.mongodb.net/expense-tracker?retryWrites=true&w=majority"
+}
