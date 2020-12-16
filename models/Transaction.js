@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
 const TransactionSchema = new mongoose.Schema({
-  name: {
-    type: String,
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'category',
     required: true,
   },
   user: {
@@ -11,7 +12,8 @@ const TransactionSchema = new mongoose.Schema({
     required: true,
   },
   type: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'transactionType',
     required: true,
   },
   amount: {

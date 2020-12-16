@@ -1,26 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
+const { check, validationResult } = require('express-validator');
 
 const Transaction = require('../../models/Transaction');
 const User = require('../../models/User');
 
-// @route   POST api/transactions/transaction
+// @route   POST api/transaction
 // @desc    Add a new transaction
 // @access  Private
-router.post('/transaction', auth, async (req, res) => {
+router.post('/', auth, [
+  check('category', 'Category is required')
+    .exists(),
+  check('type', 'Type is required')
+    .exists(),
+  check('amount', 'Amount is required')
+    .exists()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
   try {
-    const { name, amount, type, date } = req.body;
+    const { category, amount, type, date } = req.body;
 
     if (date === null) {
       date = new Date();
     }
 
     const transactionFields = {};
-    transactionFields.name = name;
+    transactionFields.category = category;
     transactionFields.amount = amount;
     transactionFields.type = type;
     transactionFields.date = date;
+    transactionFields.user = req.user.id;
 
     const transaction = new Transaction(transactionFields);
     await transaction.save();
@@ -28,23 +41,23 @@ router.post('/transaction', auth, async (req, res) => {
     res.json(transaction);
   } catch (err) {
     console.log(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).send(err.message);
   }
 });
 
-// @route   PUT api/transactions/transaction
+// @route   PUT api/transaction
 // @desc    Edit an existing transaction
 // @access  Private
-router.put('/transaction/', auth, async (req, res) => {
+router.put('/', auth, async (req, res) => {
   try {
-    const { name, amount, type, date } = req.body;
+    const { category, amount, type, date } = req.body;
 
     if (date === null) {
       date = new Date();
     }
 
     const transactionFields = {};
-    transactionFields.name = name;
+    transactionFields.category = category;
     transactionFields.amount = amount;
     transactionFields.type = type;
     transactionFields.date = date;
@@ -52,7 +65,7 @@ router.put('/transaction/', auth, async (req, res) => {
     let transaction = await Transaction.findById(req.user.id);
 
     if (!transaction) {
-      return res.status(400).json({ msg: 'There is no profile for this user' });
+      return res.status(400).json({ msg: 'There is no transaction for this user' });
     }
 
     transaction = await Transaction.findOneAndUpdate(
@@ -85,9 +98,14 @@ router.delete('/', auth, async (req, res) => {
 // @route   GET api/transactions/alltransactions
 // @desc    Retrieve all transactions for a user
 // @access  Private
-router.get('/alltransactions', auth, async (req, res) => {
+router.get('/all-transactions', auth, async (req, res) => {
   try {
-    let records = await Transaction.find().where('user').equals(req.user.id);
+    let records = await Transaction.find()
+    .where('user')
+    .equals(req.user.id)
+    .populate('user')
+    .populate('category')
+    .populate('type');
 
     res.json(records);
   } catch (err) {
