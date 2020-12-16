@@ -3,12 +3,14 @@ const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const bcrypt = require('bcryptjs');
+var nodemailer = require('nodemailer');
 
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const User = require('../../models/User');
 
 //@route GET api/auth/user
+//Get logged in user
 router.get('/user', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
@@ -119,6 +121,7 @@ router.post('/register', [
     });
 
 //@route PATCH api/auth/change-password
+//Change Password
 router.patch('/change-password', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -133,23 +136,113 @@ router.patch('/change-password', auth, async (req, res) => {
                 .json({ errors: [{ msg: 'Invalid old password' }] });
         }
 
-        if(newPassword.length < 6){
+        if (newPassword.length < 6) {
             return res
                 .status(400)
                 .json({ errors: [{ msg: 'Please enter a password with 6 or more characters' }] });
+        }
+        if (oldPassword === newPassword) {
+            return res
+                .status(400)
+                .json({ errors: [{ msg: 'Your old password cannot be the new password' }] });
         }
 
         const salt = await bcrypt.genSalt(10);
 
         const pwd = await bcrypt.hash(newPassword, salt);
 
-            updatePassword = await User.findOneAndUpdate(
-                { _id: req.user.id },
-                { $set: {password: pwd} },
-                { runValidators: true },
-            );
+        updatePassword = await User.findOneAndUpdate(
+            { _id: req.user.id },
+            { $set: { password: pwd } },
+            { runValidators: true },
+        );
 
         res.json("Password changed successfully!");
+    } catch (err) {
+        res.status(500).send("Error: " + err.message);
+    }
+});
+
+//@route POST api/auth/forgot-password
+//Forgot Password
+router.post('/forgot-password', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        const token = jwt.sign({ user }, config.get('jwtToken'), {
+            expiresIn: 3600
+        });
+
+        var transport = nodemailer.createTransport({
+            host: config.get("mailHost"),
+            port: 2525,
+            auth: {
+                user: config.get("mailUser"),
+                pass: config.get("mailPassword")
+            }
+        });
+
+        var mailOptions = {
+            from: 'expense-tracker@gmail.com',
+            to: user.email,
+            subject: 'Reset password',
+            html: '<h4><b>Reset Password</b></h4>' +
+                '<p>Click on this link to reset your password:</p>' +
+                '<a href=' + config.baseURL + 'api/auth/reset/' + user._id + '/' + token + '">' + config.baseURL + 'api/auth/reset/' + user._id + '/' + token + '</a>' +
+                '<br><br>'
+        };
+
+        transport.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+
+        res.json("A mail has been sent to "+user.email+" with further instructions.");
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+//@route POST api/auth/reset/:userId/:token
+//Reset Password
+router.post('/reset/:userId/:token', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+
+        jwt.verify(req.params.token, config.get('jwtToken'), (err) => {
+            if (err) {
+                return res.status(401).send('Link has expired');
+            }
+        });
+
+        const { newPassword, repeatPassword } = req.body;
+
+        if (newPassword == undefined || newPassword.length < 6) {
+            return res
+                .status(400)
+                .json({ errors: [{ msg: 'Please enter a password with 6 or more characters' }] });
+        }
+        if (repeatPassword !== newPassword) {
+            return res
+                .status(400)
+                .json({ errors: [{ msg: 'The passwords do not match' }] });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+
+        const pwd = await bcrypt.hash(newPassword, salt);
+
+        updatePassword = await User.findOneAndUpdate(
+            { _id: user.id },
+            { $set: { password: pwd } },
+            { runValidators: true },
+        );
+
+        res.json("Password successfully changed!");
     } catch (err) {
         res.status(500).send("Error: " + err.message);
     }

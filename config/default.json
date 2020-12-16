@@ -1,4 +1,8 @@
 {
     "mongoURI": "mongodb+srv://root:123@expense-tracker.hvwvi.mongodb.net/expense-tracker?retryWrites=true&w=majority",
-    "jwtToken": "secrettoken"
+    "jwtToken": "secrettoken",
+    "baseURL" : "http://localhost:1000/",
+    "mailHost" : "smtp.mailtrap.io",
+    "mailUser" : "3b5cf507bbf3f3",
+    "mailPassword" : "8217c446cd1928"
 }
