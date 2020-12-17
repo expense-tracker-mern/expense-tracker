@@ -10,6 +10,9 @@ const CategorySchema = new mongoose.Schema({
     ref: 'transactionType',
     required: true,
   },
+  image: {
+    type: String,
+  }
 });
 
 module.exports = Category = mongoose.model('category', CategorySchema);

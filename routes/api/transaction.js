@@ -103,6 +103,7 @@ router.get('/all-transactions', auth, async (req, res) => {
     let records = await Transaction.find()
     .where('user')
     .equals(req.user.id)
+    .sort({"date": -1})
     .populate('user')
     .populate('category')
     .populate('type');

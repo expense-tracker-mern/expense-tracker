@@ -1,0 +1,24 @@
+
+.transactionDiv {
+    background-color: white;
+    width: 70%;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    padding: 30px 30px;
+    box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+}
+
+.container {
+    margin: 50px 0;
+}
+
+.income {
+    color: #56bcee;
+    font-weight: bolder;
+}
+
+.expenses {
+    color: #e6282e;
+    font-weight: bolder;
+}
