@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import * as actions from '../../store/actions/index';
 import dateFormat from 'dateformat';
 import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css"
+import "react-datepicker/dist/react-datepicker.css";
+import { Doughnut } from "react-chartjs-2";
 
 import "./Dashboard.css";
 import "../../../src/App.css";
@@ -50,89 +51,131 @@ export const Dashboard = (props) => {
         }
     }
 
-    console.log(startDate.date);
+    console.log(props.categories);
+
+    const data = {
+        labels: Object.keys(props.categories),
+        datasets: [
+            {
+                label: 'Categories',
+                data: Object.values(props.categories),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)',
+                ],
+                borderWidth: 1,
+            },
+        ],
+    }
 
     return (
         <Container className="container">
-            <div className="dateDiv">
-                <DatePicker
-                    selected={startDate.month}
-                    onChange={(date) => changeDate(date, "month")}
-                    dateFormat="MMMM-yyyy"
-                    showMonthYearPicker
-                />
-                <DatePicker
-                    selected={startDate.year}
-                    onChange={(date) => changeDate(date, "year")}
-                    showYearPicker
-                    dateFormat="yyyy"
-                />
-            </div>
-            <div className="transactionDiv">
+            <Grid stackable columns={2}>
+                <Grid.Column>
+                    <Segment>
+                        <div className="dateDiv">
+                            <DatePicker
+                                selected={startDate.month}
+                                onChange={(date) => changeDate(date, "month")}
+                                dateFormat="MMMM-yyyy"
+                                showMonthYearPicker
+                            />
+                            <DatePicker
+                                selected={startDate.year}
+                                onChange={(date) => changeDate(date, "year")}
+                                showYearPicker
+                                dateFormat="yyyy"
+                            />
+                        </div>
+                        <div className="transactionDiv">
 
-                <Grid columns='equal' textAlign='center'>
-                    <Grid.Row>
-                        <Grid.Column>
-                            <Segment>
-                                <div>Income</div>
-                                <div><h5 className="income">&#8377; {props.income}</h5></div>
-                            </Segment>
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Segment>
-                                <div>Expenses</div>
-                                <div><h5 className="expenses">&#8377; {props.expenses}</h5></div>
-                            </Segment>
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Segment>
-                                <div>Total</div>
-                                <div><h5>{Math.sign(props.total) === -1 ? '- ' : null}&#8377;{Math.abs(props.total)}</h5></div>
-                            </Segment>
-                        </Grid.Column>
-                    </Grid.Row>
-                </Grid>
-                {transaction.length > 0 ?
-                    <List relaxed>
-                        {transaction.map(transaction => {
-                            if (dates.includes(dateFormat(transaction.date, "mmmm dS, yyyy"))) {
-                                present = true;
-                            } else {
-                                dates.push(dateFormat(transaction.date, "mmmm dS, yyyy"));
-                                present = false;
-                            }
-                            return (
-                                <List.Item key={transaction._id}>
-                                    <List.Content>
-                                        {!present &&
-                                            <Fragment>
-                                                <Divider section />
-                                                <List.Item>
-                                                    <List.Content ><h4>{dateFormat(transaction.date, "dddd, mmmm dS, yyyy")}</h4></List.Content>
-                                                </List.Item>
-                                            </Fragment>
+                            <Grid columns='equal' textAlign='center'>
+                                <Grid.Row>
+                                    <Grid.Column>
+                                        <Segment>
+                                            <div>Income</div>
+                                            <div><h5 className="income">&#8377; {props.income}</h5></div>
+                                        </Segment>
+                                    </Grid.Column>
+                                    <Grid.Column>
+                                        <Segment>
+                                            <div>Expenses</div>
+                                            <div><h5 className="expenses">&#8377; {props.expenses}</h5></div>
+                                        </Segment>
+                                    </Grid.Column>
+                                    <Grid.Column>
+                                        <Segment>
+                                            <div>Total</div>
+                                            <div><h5>{Math.sign(props.total) === -1 ? '- ' : null}&#8377;{Math.abs(props.total)}</h5></div>
+                                        </Segment>
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                            {transaction.length > 0 ?
+                                <List relaxed>
+                                    {transaction.map(transaction => {
+                                        if (dates.includes(dateFormat(transaction.date, "mmmm dS, yyyy"))) {
+                                            present = true;
+                                        } else {
+                                            dates.push(dateFormat(transaction.date, "mmmm dS, yyyy"));
+                                            present = false;
                                         }
-                                        <List relaxed>
-                                            <List.Item>
-                                                <List.Content floated='right'>
-                                                    <h5 className={transaction.type.name === 'Expense' ? "expenses" : "income"}>
-                                                        {transaction.type.name === 'Expense' ? "-" : "+"}   &#8377; {transaction.amount}
-                                                    </h5>
-                                                </List.Content>
-                                                <Image verticalAlign="middle" avatar src={transaction.category.image} />
-                                                <List.Content verticalAlign="middle">
-                                                    <List.Header>{transaction.category.name}</List.Header>
+                                        return (
+                                            <List.Item key={transaction._id}>
+                                                <List.Content>
+                                                    {!present &&
+                                                        <Fragment>
+                                                            <Divider section />
+                                                            <List.Item>
+                                                                <List.Content ><h4>{dateFormat(transaction.date, "dddd, mmmm dS, yyyy")}</h4></List.Content>
+                                                            </List.Item>
+                                                        </Fragment>
+                                                    }
+                                                    <List relaxed>
+                                                        <List.Item>
+                                                            <List.Content floated='right'>
+                                                                <h5 className={transaction.type.name === 'Expense' ? "expenses" : "income"}>
+                                                                    {transaction.type.name === 'Expense' ? "-" : "+"}   &#8377; {transaction.amount}
+                                                                </h5>
+                                                            </List.Content>
+                                                            <Image verticalAlign="middle" avatar src={transaction.category.image} />
+                                                            <List.Content verticalAlign="middle">
+                                                                <List.Header>{transaction.category.name}</List.Header>
+                                                            </List.Content>
+                                                        </List.Item>
+                                                    </List>
                                                 </List.Content>
                                             </List.Item>
-                                        </List>
-                                    </List.Content>
-                                </List.Item>
-                            )
-                        })}
-                    </List> :
-                    <div>No Transactions found</div>
-                }
-            </div>
+                                        )
+                                    })}
+                                </List> :
+                                <div>No Transactions found</div>
+                            }
+                        </div>
+                    </Segment>
+                </Grid.Column>
+                <Grid.Column>
+                    <Segment>
+                        <div className="doughnutDiv">
+                            <Doughnut width="500px" height="250px"
+                                options={{ maintainAspectRatio: false }} data={data} />
+                        </div>
+                    </Segment>
+                </Grid.Column>
+            </Grid>
+
         </Container>
     )
 }
@@ -144,7 +187,8 @@ const mapStateToProps = state => {
         total: state.transaction.total,
         income: state.transaction.income,
         expenses: state.transaction.expenses,
-        loading: state.transaction.loading
+        loading: state.transaction.loading,
+        categories: state.transaction.categories
     }
 }
 

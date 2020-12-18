@@ -1,12 +1,8 @@
 
 .transactionDiv {
     background-color: white;
-    width: 60%;
-    justify-content: center;
     align-items: center;
-    margin: 0 auto;
     padding: 30px 30px;
-    box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
     border-radius: .28571429rem;
 }
 
