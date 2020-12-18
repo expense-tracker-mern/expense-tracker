@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const { check, validationResult } = require('express-validator');
+var dateFormat = require("dateformat");
 
 const Transaction = require('../../models/Transaction');
 const User = require('../../models/User');
@@ -95,22 +96,63 @@ router.delete('/', auth, async (req, res) => {
   }
 });
 
-// @route   GET api/transactions/alltransactions
-// @desc    Retrieve all transactions for a user
+// @route   GET api/transactions/all-transactions/:type/:date
+// @desc    Retrieve all transactions for a user by month or year
 // @access  Private
-router.get('/all-transactions', auth, async (req, res) => {
+router.get('/all-transactions/:type/:date', auth, async (req, res) => {
+  var dateType = {};
+  if (req.params.type === 'month') {
+    dateType = {
+      format: "%m-%Y",
+      date: "$date"
+    }
+  }else{
+    dateType = {
+      format: "%Y",
+      date: "$date"
+    }
+  }
   try {
-    let records = await Transaction.find()
-    .where('user')
-    .equals(req.user.id)
-    .sort({"date": -1})
-    .populate('user')
-    .populate('category')
-    .populate('type');
+    let records = await Transaction.aggregate([
+      {
+        $project: {
+          _id: "$_id",
+          category: "$category",
+          user: "$user",
+          type: "$type",
+          date: "$date",
+          amount: "$amount",
+          timeCriteria: {
+            $dateToString: dateType
+          },
+        }
+      },
+      {
+        $match: {
+          timeCriteria: {
+            $eq: req.params.date
+          }
+        }
+      },
+      {
+        $project: {
+          _id: "$_id",
+          category: "$category",
+          date: "$date",
+          user: "$user",
+          type: "$type",
+          amount: "$amount"
+        }
+      },
+      { $sort: { date: -1 } },
+    ]);
 
-    res.json(records);
+    let a = await Transaction
+      .populate(records, [{ path: "user" }, { path: "category" }, { path: "type" }]);
+
+    res.json(a);
   } catch (err) {
-    res.status(500).send('Server Error');
+    res.status(500).send(err.message);
   }
 });
 

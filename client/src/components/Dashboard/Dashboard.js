@@ -1,8 +1,10 @@
-import React, { useEffect, Fragment } from 'react';
+import React, { useEffect, Fragment, useState } from 'react';
 import { Container, Grid, Segment, List, Image, Divider } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import * as actions from '../../store/actions/index';
 import dateFormat from 'dateformat';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css"
 
 import "./Dashboard.css";
 import "../../../src/App.css";
@@ -14,16 +16,60 @@ export const Dashboard = (props) => {
     var dates = [];
     var present = false;
 
+    const [startDate, setStartDate] = useState({
+        month: new Date(),
+        year: new Date(),
+        date: null,
+        type: "month"
+    });
+
     useEffect(() => {
-        getTransactions();
-    }, [getTransactions]);
+        getTransactions(startDate.date ? startDate.date : dateFormat(startDate.month, "m-yyyy"), startDate.type);
+    }, [getTransactions, startDate]);
 
     const transaction = props.transactions || {};
     console.log(transaction);
 
+    const changeDate = (d, type) => {
+        if (type === 'month') {
+            setStartDate(
+                {
+                    ...startDate,
+                    month: d,
+                    date: dateFormat(d, "m-yyyy"),
+                    type: "month"
+                });
+        } else {
+            setStartDate(
+                {
+                    ...startDate,
+                    year: d,
+                    date: dateFormat(d, "yyyy"),
+                    type: "year"
+                });
+        }
+    }
+
+    console.log(startDate.date);
+
     return (
         <Container className="container">
+            <div className="dateDiv">
+                <DatePicker
+                    selected={startDate.month}
+                    onChange={(date) => changeDate(date, "month")}
+                    dateFormat="MMMM-yyyy"
+                    showMonthYearPicker
+                />
+                <DatePicker
+                    selected={startDate.year}
+                    onChange={(date) => changeDate(date, "year")}
+                    showYearPicker
+                    dateFormat="yyyy"
+                />
+            </div>
             <div className="transactionDiv">
+
                 <Grid columns='equal' textAlign='center'>
                     <Grid.Row>
                         <Grid.Column>
@@ -58,13 +104,13 @@ export const Dashboard = (props) => {
                             return (
                                 <List.Item key={transaction._id}>
                                     <List.Content>
-                                        {!present && 
-                                        <Fragment>
-                                        <Divider section />
-                                        <List.Item>
-                                        <List.Content ><h4>{dateFormat(transaction.date, "dddd, mmmm dS, yyyy")}</h4></List.Content>
-                                        </List.Item>
-                                        </Fragment>
+                                        {!present &&
+                                            <Fragment>
+                                                <Divider section />
+                                                <List.Item>
+                                                    <List.Content ><h4>{dateFormat(transaction.date, "dddd, mmmm dS, yyyy")}</h4></List.Content>
+                                                </List.Item>
+                                            </Fragment>
                                         }
                                         <List relaxed>
                                             <List.Item>
@@ -104,7 +150,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        getTransactions: () => dispatch(actions.getTransactions()),
+        getTransactions: (date, type) => dispatch(actions.getTransactions(date, type)),
     }
 }
 
