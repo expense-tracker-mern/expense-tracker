@@ -7,7 +7,8 @@ const initialState = {
     total: 0,
     income: 0,
     expenses: 0,
-    categories: []
+    amount: [],
+    categories: [],
 }
 
 const reducer = (state = initialState, action) => {
@@ -21,7 +22,8 @@ const reducer = (state = initialState, action) => {
                 income: action.income,
                 expenses: action.expenses,
                 loading: action.loading,
-                categories: action.categories
+                categories: action.categories,
+                amount: action.amount
             }
         case actionTypes.GET_TRANSACTIONS_FAIL:
             return {
