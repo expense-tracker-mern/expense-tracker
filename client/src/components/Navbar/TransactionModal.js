@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Icon, Form, Grid, Divider } from 'semantic-ui-react';
+import { Modal, Icon, Form, Grid, Divider, Message } from 'semantic-ui-react';
 import {
   getTransactionTypes,
   getTransactionCategories,
@@ -15,35 +15,46 @@ const TransactionModal = ({
   submitTransaction,
   categories,
   types,
+  errors,
+  loading,
 }) => {
   const [form, setForm] = useState({});
   const [type, onTypeChange] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formSubmit, onFormsubmit] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     submitTransaction(form);
     console.log('TransactionSubmit');
+    if (errors === null) {
+      onFormsubmit(true);
+    }
   };
 
   const onFormValueChange = (event, result) => {
     const { name, value } = result || event.target;
     setForm({ ...form, [name]: value });
-    console.log(name);
-    console.log(form);
 
     if (name === 'type') {
-      // setForm({ ...form, ['category']: '' });
       onTypeChange(value);
     }
+    if (name === 'amount' && value === '') {
+      let formData = form;
+      delete formData[name];
+      setForm({ ...formData });
+    }
   };
+
+  useEffect(() => {
+    setForm({});
+    changeModalOpen(false);
+  }, [formSubmit]);
 
   useEffect(() => {
     getTransactionTypes();
   }, [modalOpen]);
 
   useEffect(() => {
-    console.log(type);
     getTransactionCategories(type);
   }, [type]);
 
@@ -62,10 +73,26 @@ const TransactionModal = ({
       >
         <Modal.Header>Add a Transaction</Modal.Header>
         <Modal.Content>
+          {errors !== null && (
+            <Message
+              visible={errors !== null}
+              negative
+              header="There was some errors with your submission"
+              list={errors}
+            />
+          )}
+          {/* <Message
+            visible={errors.length > 0}
+            negative
+            header="ERROR"
+            list={errors}
+          /> */}
+          {console.log(errors)}
           <Form
             onSubmit={(e) => {
               handleSubmit(e);
             }}
+            loading={loading}
           >
             <Grid doubling stackable columns={2}>
               <Grid.Row>
@@ -129,6 +156,8 @@ const TransactionModal = ({
 const mapStateToProps = (state) => ({
   types: state.transaction.types,
   categories: state.transaction.categories,
+  errors: state.transaction.transactionSubmitError,
+  loading: state.transaction.loading,
 });
 
 export default connect(mapStateToProps, {

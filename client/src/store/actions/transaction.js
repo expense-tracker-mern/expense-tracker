@@ -159,14 +159,27 @@ export const getTransactionCategories = (type) => async (dispatch) => {
 
 export const submitTransaction = (formData) => async (dispatch) => {
   try {
+    dispatch({
+      type: actionTypes.TRANSACTION_SUBMIT_LOADING,
+    });
     console.log(formData);
     const res = await axios.post('api/transaction/', formData);
+
+    dispatch({
+      type: actionTypes.TRANSACTION_SUBMIT_SUCCESS,
+    });
     console.log(res);
   } catch (error) {
-    console.log(error);
+    const errors = error.response.data.errors;
+
+    let errorObject = [];
+    errors.forEach((e) => {
+      errorObject.push(e.msg);
+    });
+
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_ERROR,
-      payload: error,
+      payload: errorObject,
     });
   }
 };

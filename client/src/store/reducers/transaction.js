@@ -1,49 +1,17 @@
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
-<<<<<<< Updated upstream
-    error: null,
-    transactions: null,
-    loading: true,
-    total: 0,
-    income: 0,
-    expenses: 0,
-    amount: [],
-    categories: [],
-}
-
-const reducer = (state = initialState, action) => {
-    switch (action.type) {
-        case actionTypes.GET_TRANSACTIONS:
-            return {
-                ...state,
-                error: [],
-                transactions: action.transactions,
-                total: action.total,
-                income: action.income,
-                expenses: action.expenses,
-                loading: action.loading,
-                categories: action.categories,
-                amount: action.amount
-            }
-        case actionTypes.GET_TRANSACTIONS_FAIL:
-            return {
-                ...state,
-                error: action.error,
-                loading: action.loading
-            }
-        default:
-            return state;
-    }
-=======
-  error: null,
+  transactionLoadError: null,
+  transactionSubmitError: null,
   transactions: null,
   loading: true,
   total: 0,
   income: 0,
   expenses: 0,
+  amount: [],
   categories: [],
   types: [],
+  loading: false,
 };
 
 const reducer = (state = initialState, action) => {
@@ -51,7 +19,7 @@ const reducer = (state = initialState, action) => {
     case actionTypes.GET_TRANSACTIONS:
       return {
         ...state,
-        error: [],
+        transactionLoadError: [],
         transactions: action.transactions,
         total: action.total,
         income: action.income,
@@ -62,7 +30,7 @@ const reducer = (state = initialState, action) => {
     case actionTypes.GET_TRANSACTIONS_FAIL:
       return {
         ...state,
-        error: action.error,
+        transactionLoadError: action.error,
         loading: action.loading,
       };
     case actionTypes.TRANSACTION_TYPE_LOADED:
@@ -72,11 +40,20 @@ const reducer = (state = initialState, action) => {
     case actionTypes.TRANSACTION_CATEGORY_LOADED:
       return { ...state, categories: action.payload };
     case actionTypes.TRANSACTION_CATEGORY_ERROR:
-      return { ...state, categories: [] };
+      return { ...state, categories: [], loading: false };
+    case actionTypes.TRANSACTION_SUBMIT_ERROR:
+      return {
+        ...state,
+        transactionSubmitError: action.payload,
+        loading: false,
+      };
+    case actionTypes.TRANSACTION_SUBMIT_LOADING:
+      return { ...state, loading: true };
+    case actionTypes.TRANSACTION_SUBMIT_SUCCESS:
+      return { ...state, loading: false, transactionSubmitError: null };
     default:
       return state;
   }
->>>>>>> Stashed changes
 };
 
 export default reducer;
