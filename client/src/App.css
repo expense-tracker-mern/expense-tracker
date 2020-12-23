@@ -1,3 +1,16 @@
 body {
   background-color: #f0f0f0!important;
 }
+
+.main {
+  margin-top: 10rem;
+}
+
+.navbar {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+i.add.large.icon.add-icon {
+  margin: 0 !important;
+}

@@ -15,9 +15,11 @@ const initialState = {};
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-const store = createStore(rootReducer, initialState, composeEnhancers(
-  applyMiddleware(thunk)
-));
+const store = createStore(
+  rootReducer,
+  initialState,
+  composeEnhancers(applyMiddleware(thunk))
+);
 
 ReactDOM.render(
   <React.StrictMode>

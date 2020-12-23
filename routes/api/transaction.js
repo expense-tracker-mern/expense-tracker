@@ -2,49 +2,59 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const { check, validationResult } = require('express-validator');
-var dateFormat = require("dateformat");
+var dateFormat = require('dateformat');
 
 const Transaction = require('../../models/Transaction');
 const User = require('../../models/User');
-
+const Category = require('../../models/Category');
 // @route   POST api/transaction
 // @desc    Add a new transaction
 // @access  Private
-router.post('/', auth, [
-  check('category', 'Category is required')
-    .exists(),
-  check('type', 'Type is required')
-    .exists(),
-  check('amount', 'Amount is required')
-    .exists()
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() })
-  }
-  try {
-    const { category, amount, type, date } = req.body;
-
-    if (date === null) {
-      date = new Date();
+router.post(
+  '/',
+  auth,
+  [
+    check('category', 'Category is required').exists(),
+    check('type', 'Type is required').exists(),
+    check('amount', 'Amount is required').exists(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+    try {
+      let { name, category, amount, type, date } = req.body;
 
-    const transactionFields = {};
-    transactionFields.category = category;
-    transactionFields.amount = amount;
-    transactionFields.type = type;
-    transactionFields.date = date;
-    transactionFields.user = req.user.id;
+      const categoryObject = await Category.findOne({ name: category });
+      const typeObject = await TransactionType.findOne({ name: type });
 
-    const transaction = new Transaction(transactionFields);
-    await transaction.save();
+      if (date === undefined) {
+        date = new Date();
+      }
 
-    res.json(transaction);
-  } catch (err) {
-    console.log(err.message);
-    res.status(500).send(err.message);
+      if (name === undefined) {
+        name = category + '_' + type + '_' + date;
+      }
+
+      const transactionFields = {};
+      transactionFields.category = categoryObject.id;
+      transactionFields.amount = amount;
+      transactionFields.type = typeObject.id;
+      transactionFields.date = date;
+      transactionFields.user = req.user.id;
+      transactionFields.name = name;
+
+      const transaction = new Transaction(transactionFields);
+      await transaction.save();
+
+      res.json(transaction);
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).send(err.message);
+    }
   }
-});
+);
 
 // @route   PUT api/transaction
 // @desc    Edit an existing transaction
@@ -66,7 +76,9 @@ router.put('/', auth, async (req, res) => {
     let transaction = await Transaction.findById(req.user.id);
 
     if (!transaction) {
-      return res.status(400).json({ msg: 'There is no transaction for this user' });
+      return res
+        .status(400)
+        .json({ msg: 'There is no transaction for this user' });
     }
 
     transaction = await Transaction.findOneAndUpdate(
@@ -103,52 +115,55 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
   var dateType = {};
   if (req.params.type === 'month') {
     dateType = {
-      format: "%m-%Y",
-      date: "$date"
-    }
-  }else{
+      format: '%m-%Y',
+      date: '$date',
+    };
+  } else {
     dateType = {
-      format: "%Y",
-      date: "$date"
-    }
+      format: '%Y',
+      date: '$date',
+    };
   }
   try {
     let records = await Transaction.aggregate([
       {
         $project: {
-          _id: "$_id",
-          category: "$category",
-          user: "$user",
-          type: "$type",
-          date: "$date",
-          amount: "$amount",
+          _id: '$_id',
+          category: '$category',
+          user: '$user',
+          type: '$type',
+          date: '$date',
+          amount: '$amount',
           timeCriteria: {
-            $dateToString: dateType
+            $dateToString: dateType,
           },
-        }
+        },
       },
       {
         $match: {
           timeCriteria: {
-            $eq: req.params.date
-          }
-        }
+            $eq: req.params.date,
+          },
+        },
       },
       {
         $project: {
-          _id: "$_id",
-          category: "$category",
-          date: "$date",
-          user: "$user",
-          type: "$type",
-          amount: "$amount"
-        }
+          _id: '$_id',
+          category: '$category',
+          date: '$date',
+          user: '$user',
+          type: '$type',
+          amount: '$amount',
+        },
       },
       { $sort: { date: -1 } },
     ]);
 
-    let a = await Transaction
-      .populate(records, [{ path: "user" }, { path: "category" }, { path: "type" }]);
+    let a = await Transaction.populate(records, [
+      { path: 'user' },
+      { path: 'category' },
+      { path: 'type' },
+    ]);
 
     res.json(a);
   } catch (err) {

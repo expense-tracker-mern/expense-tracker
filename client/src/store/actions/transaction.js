@@ -104,3 +104,69 @@ export const getTransactions = (date, type) => async (dispatch) => {
     });
   }
 };
+
+export const getTransactionTypes = () => async (dispatch) => {
+  try {
+    const res = await axios.get('/api/transaction-type/all');
+    let transactionTypeOptions = [];
+    console.log(res.data);
+
+    res.data.forEach((option) => {
+      let optionBody = {};
+      optionBody.key = 'type_' + option.name;
+      optionBody.text = option.name;
+      optionBody.value = option.name.toLowerCase();
+      transactionTypeOptions.push(optionBody);
+    });
+
+    dispatch({
+      type: actionTypes.TRANSACTION_TYPE_LOADED,
+      payload: transactionTypeOptions,
+    });
+  } catch (err) {
+    dispatch({
+      type: actionTypes.TRANSACTION_TYPE_ERROR,
+    });
+    console.log(err);
+  }
+};
+
+export const getTransactionCategories = (type) => async (dispatch) => {
+  try {
+    const res = await axios.get(`/api/category/${type}`);
+    let categoryOptions = [];
+
+    res.data.forEach((category) => {
+      let optionBody = {};
+      optionBody.key = 'category_' + category.name;
+      optionBody.text = category.name;
+      optionBody.value = category.name;
+      categoryOptions.push(optionBody);
+    });
+
+    dispatch({
+      type: actionTypes.TRANSACTION_CATEGORY_LOADED,
+      payload: categoryOptions,
+    });
+    console.log(res.data);
+  } catch (err) {
+    console.log(err);
+    dispatch({
+      type: actionTypes.TRANSACTION_CATEGORY_ERROR,
+    });
+  }
+};
+
+export const submitTransaction = (formData) => async (dispatch) => {
+  try {
+    console.log(formData);
+    const res = await axios.post('api/transaction/', formData);
+    console.log(res);
+  } catch (error) {
+    console.log(error);
+    dispatch({
+      type: actionTypes.TRANSACTION_SUBMIT_ERROR,
+      payload: error,
+    });
+  }
+};
