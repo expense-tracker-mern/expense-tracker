@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const { check, validationResult } = require('express-validator');
-var dateFormat = require('dateformat');
 
 const Transaction = require('../../models/Transaction');
 const User = require('../../models/User');
@@ -112,6 +111,7 @@ router.delete('/', auth, async (req, res) => {
 // @desc    Retrieve all transactions for a user by month or year
 // @access  Private
 router.get('/all-transactions/:type/:date', auth, async (req, res) => {
+  const user = await User.findById(req.user.id).select('-password');
   var dateType = {};
   if (req.params.type === 'month') {
     dateType = {
@@ -126,6 +126,7 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
   }
   try {
     let records = await Transaction.aggregate([
+      { $match : { user : user._id } },
       {
         $project: {
           _id: '$_id',
@@ -143,7 +144,7 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
         $match: {
           timeCriteria: {
             $eq: req.params.date,
-          },
+          }
         },
       },
       {

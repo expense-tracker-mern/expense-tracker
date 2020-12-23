@@ -4,15 +4,16 @@ import dateFormat from 'dateformat';
 
 export const getTransactions = (date, type) => async (dispatch) => {
   try {
-    // const config = {
-    //     headers: {
-    //         'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWZkOGZkY2FiMzU1ODgzZWE4ZGQzZDAwIn0sImlhdCI6MTYwODE5MTQxMSwiZXhwIjoxNjA4NTUxNDExfQ.uH8csE9JIoi9AN1XZsaSVLI1kZSfJjiipXdMAdirjFM'
-    //     }
-    // }
-    // const transactions = await axios.get('api/transaction/all-transactions/' + type + '/' + date, config);
-    const transactions = await axios.get(
-      'api/transaction/all-transactions/' + type + '/' + date
-    );
+    const config = {
+        headers: {
+            'x-auth-token': localStorage.token
+        }
+    }
+    const transactions = await axios.get('api/transaction/all-transactions/' + type + '/' + date, config);
+    console.log(transactions);
+    // const transactions = await axios.get(
+    //   'api/transaction/all-transactions/' + type + '/' + date
+    // );
 
     //Categories for pie chart
     let categories = Object.values(transactions.data).map((transaction) => {
@@ -52,7 +53,7 @@ export const getTransactions = (date, type) => async (dispatch) => {
     if (type === 'year') {
       years.forEach((i) => {
         if (!dates.some((item) => item.date === i.toString())) {
-          dates.push({ date: i, amount: 0, expense: 'Income' });
+          dates.push({ date: i, amount: 0, expense: 'income' });
         }
       });
       dates.sort((a, b) => {
@@ -64,14 +65,14 @@ export const getTransactions = (date, type) => async (dispatch) => {
       }
       list.forEach((i) => {
         if (!dates.some((item) => item.date === i.toString())) {
-          dates.push({ date: i, amount: 0, expense: 'Income' });
+          dates.push({ date: i, amount: 0, expense: 'income' });
         }
       });
     }
     var amount = {};
 
     dates.forEach((i) => {
-      i.type === 'Income'
+      i.type === 'income'
         ? (amount[i.date] = (amount[i.date] || 0) + i.amount)
         : (amount[i.date] = (amount[i.date] || 0) - i.amount);
     });
@@ -80,7 +81,7 @@ export const getTransactions = (date, type) => async (dispatch) => {
       income = 0,
       expenses = 0;
     transactions.data.map((t) => {
-      if (t.type.name === 'Expense') {
+      if (t.type.name === 'expense') {
         return [(total = total - t.amount), (expenses = expenses + t.amount)];
       } else {
         return [(total = total + t.amount), (income = income + t.amount)];

@@ -1,50 +1,16 @@
 import * as actionTypes from '../actions/actionTypes';
 
 const initialState = {
-<<<<<<< Updated upstream
-    error: null,
-    transactions: null,
-    loading: true,
-    total: 0,
-    income: 0,
-    expenses: 0,
-    amount: [],
-    categories: [],
-}
-
-const reducer = (state = initialState, action) => {
-    switch (action.type) {
-        case actionTypes.GET_TRANSACTIONS:
-            return {
-                ...state,
-                error: [],
-                transactions: action.transactions,
-                total: action.total,
-                income: action.income,
-                expenses: action.expenses,
-                loading: action.loading,
-                categories: action.categories,
-                amount: action.amount
-            }
-        case actionTypes.GET_TRANSACTIONS_FAIL:
-            return {
-                ...state,
-                error: action.error,
-                loading: action.loading
-            }
-        default:
-            return state;
-    }
-=======
   error: null,
   transactions: null,
   loading: true,
   total: 0,
   income: 0,
   expenses: 0,
+  amount: [],
   categories: [],
   types: [],
-};
+}
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -58,13 +24,14 @@ const reducer = (state = initialState, action) => {
         expenses: action.expenses,
         loading: action.loading,
         categories: action.categories,
-      };
+        amount: action.amount,
+      }
     case actionTypes.GET_TRANSACTIONS_FAIL:
       return {
         ...state,
         error: action.error,
-        loading: action.loading,
-      };
+        loading: action.loading
+      }
     case actionTypes.TRANSACTION_TYPE_LOADED:
       return { ...state, types: action.payload };
     case actionTypes.TRANSACTION_TYPE_ERROR:
@@ -76,7 +43,6 @@ const reducer = (state = initialState, action) => {
     default:
       return state;
   }
->>>>>>> Stashed changes
 };
 
 export default reducer;

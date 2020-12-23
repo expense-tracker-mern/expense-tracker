@@ -189,8 +189,8 @@ export const Dashboard = (props) => {
                                                     <List relaxed>
                                                         <List.Item>
                                                             <List.Content floated='right'>
-                                                                <h5 className={transaction.type.name === 'Expense' ? "expenses" : "income"}>
-                                                                    {transaction.type.name === 'Expense' ? "-" : "+"}   &#8377; {transaction.amount}
+                                                                <h5 className={transaction.type.name === 'expense' ? "expenses" : "income"}>
+                                                                    {transaction.type.name === 'expense' ? "-" : "+"}   &#8377; {transaction.amount}
                                                                 </h5>
                                                             </List.Content>
                                                             <Image verticalAlign="middle" avatar src={transaction.category.image} />
