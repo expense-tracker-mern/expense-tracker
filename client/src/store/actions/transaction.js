@@ -5,9 +5,10 @@ import dateFormat from 'dateformat';
 export const getTransactions = (date, type) => async (dispatch) => {
   try {
     const config = {
-        headers: {
-            'x-auth-token': localStorage.token
-        }
+      headers: {
+        'x-auth-token': localStorage.token
+
+      }
     }
     const transactions = await axios.get('api/transaction/all-transactions/' + type + '/' + date, config);
     console.log(transactions);
@@ -15,15 +16,29 @@ export const getTransactions = (date, type) => async (dispatch) => {
     //   'api/transaction/all-transactions/' + type + '/' + date
     // );
 
-    //Categories for pie chart
-    let categories = Object.values(transactions.data).map((transaction) => {
-      return transaction.category.name;
-    });
-    var categoriesCount = {};
-    categories.forEach((i) => {
-      categoriesCount[i] = (categoriesCount[i] || 0) + 1;
-    });
 
+    //Categories for pie charts
+    let categories = Object.values(transactions.data)
+      .map(transaction => ({ name: transaction.category.name, type: transaction.type.name }));
+    var incomeCategoriesCount = {};
+    var expenseCategoriesCount = {};
+    var incomeCount = 0, expenseCount = 0;
+
+    var incomeCategories = categories.filter((i) => { return i.type === "income" });
+    incomeCategories.forEach((i) => { incomeCount ++;incomeCategoriesCount[i.name] = (incomeCategoriesCount[i.name] || 0) + 1; })
+    for (var key in incomeCategoriesCount) {
+      if (incomeCategoriesCount.hasOwnProperty(key)) {
+        incomeCategoriesCount[key] = ((incomeCategoriesCount[key]/incomeCount)*100).toFixed(2);
+      }
+    }
+
+    var expenseCategories = categories.filter((i) => { return i.type === "expense" });
+    expenseCategories.forEach((i) => { expenseCount++;expenseCategoriesCount[i.name] = (expenseCategoriesCount[i.name] || 0) + 1; });
+    for (var k in expenseCategoriesCount) {
+      if (expenseCategoriesCount.hasOwnProperty(k)) {
+        expenseCategoriesCount[k] = ((expenseCategoriesCount[k]/expenseCount)*100).toFixed(2);
+      }
+    }
     //Transaction amounts for bar chart
     let dates = Object.values(transactions.data).map((transaction) => ({
       date:
@@ -94,8 +109,9 @@ export const getTransactions = (date, type) => async (dispatch) => {
       total: total,
       income: income,
       expenses: expenses,
-      categories: categoriesCount,
-      amount: amount,
+      incomeCategories: incomeCategoriesCount,
+      expenseCategories: expenseCategoriesCount,
+      amount: amount
     });
   } catch (error) {
     console.log(error);

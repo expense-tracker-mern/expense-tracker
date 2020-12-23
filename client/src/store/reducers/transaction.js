@@ -8,7 +8,8 @@ const initialState = {
   income: 0,
   expenses: 0,
   amount: [],
-  categories: [],
+  incomeCategories: [],
+  expenseCategories: [],
   types: [],
 }
 
@@ -23,7 +24,8 @@ const reducer = (state = initialState, action) => {
         income: action.income,
         expenses: action.expenses,
         loading: action.loading,
-        categories: action.categories,
+        incomeCategories: action.incomeCategories,
+        expenseCategories: action.expenseCategories,
         amount: action.amount,
       }
     case actionTypes.GET_TRANSACTIONS_FAIL:
@@ -43,6 +45,6 @@ const reducer = (state = initialState, action) => {
     default:
       return state;
   }
-};
+}
 
 export default reducer;
