@@ -2,12 +2,14 @@ import React, { useState , useEffect} from 'react';
 import { connect } from 'react-redux';
 import { Menu, Dropdown } from 'semantic-ui-react';
 import TransactionModal from './TransactionModal';
-import { Redirect } from 'react-router-dom';
 import {logout} from '../../store/actions/auth';
+import { useHistory } from "react-router-dom";
 
 const Navbar = ({ isAuthenticated, logout }) => {
   console.log(isAuthenticated);
   const [modalOpen, changeModalOpen] = useState(false);
+
+  const history = useHistory();
 
   const addTransaction = (e) => {
     e.preventDefault();
@@ -15,14 +17,8 @@ const Navbar = ({ isAuthenticated, logout }) => {
 
   const out = () => {
     logout();
-    console.log(isAuthenticated);
+    history.push('/');
   }
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-        console.log('logout');
-    }
-}, [isAuthenticated]);
 
   return (
     localStorage.token ? 
