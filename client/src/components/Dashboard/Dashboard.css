@@ -6,15 +6,6 @@
     border-radius: .28571429rem;
 }
 
-.dateDiv {
-    display: flex;
-  justify-content: center;
-}
-
-.container {
-    margin: 50px 0;
-}
-
 .income {
     color: #56bcee;
     font-weight: bolder;
@@ -30,10 +21,16 @@
     box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
     padding: 10px;
     border-radius: .28571429rem;
+    width:inherit;height:inherit;
  }
 
  .react-datepicker__input-container {
      position: static!important;
      display: flex;
      margin: 10px 5px;
+ }
+
+ .ui .segment .datePickerDiv {
+     border: none;
+     box-shadow: none;
  }

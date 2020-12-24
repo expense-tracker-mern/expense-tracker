@@ -12,7 +12,7 @@ const initialState = {
   incomeCategories: [],
   expenseCategories: [],
   types: [],
-  loading: false,
+  submitSuccess: false
 };
 
 const reducer = (state = initialState, action) => {
@@ -49,11 +49,12 @@ const reducer = (state = initialState, action) => {
         ...state,
         transactionSubmitError: action.payload,
         loading: false,
+        submitSuccess: false
       };
     case actionTypes.TRANSACTION_SUBMIT_LOADING:
       return { ...state, loading: true };
     case actionTypes.TRANSACTION_SUBMIT_SUCCESS:
-      return { ...state, loading: false, transactionSubmitError: null };
+      return { ...state, loading: false, transactionSubmitError: null , submitSuccess: true};
     default:
       return state;
   }

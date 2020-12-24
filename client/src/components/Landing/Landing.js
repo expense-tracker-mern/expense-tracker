@@ -4,14 +4,11 @@ import Login from './Login';
 import Register from './Register';
 import { connect } from 'react-redux';
 
-const Landing = ({ isAuthenticated, loading, errors }) => {
+const Landing = ({ loading, errors, isAuthenticated }) => {
   const [isLoginForm, changeLoginForm] = useState(true);
-
-  if (isAuthenticated) {
-    return <Redirect to="/dashboard" />;
-  }
-
-  return (
+  return isAuthenticated ? (
+    <Redirect to="/dashboard" />
+  ) : (
     <Fragment>
       {isLoginForm ? (
         <Login

@@ -1,5 +1,5 @@
-import React,{useEffect, useState} from 'react';
-import {Segment} from 'semantic-ui-react';
+import React, { useEffect, useState } from 'react';
+import { Grid, Segment } from 'semantic-ui-react';
 import DatePicker from 'react-datepicker';
 import { connect } from 'react-redux';
 import * as actions from '../../store/actions/index';
@@ -24,7 +24,7 @@ export const Transaction = (props) => {
             startDate.date ? startDate.date : dateFormat(startDate.month, 'mm-yyyy'),
             startDate.type
         );
-    }, [getTransactions, startDate]);
+    }, [getTransactions, startDate, props.submitSuccess]);
 
     const transaction = props.transactions || {};
     console.log(transaction);
@@ -49,23 +49,35 @@ export const Transaction = (props) => {
     return (
         <Segment>
             <div className="dateDiv">
-                <DatePicker
-                    selected={startDate.month}
-                    onChange={(date) => changeDate(date, "month")}
-                    dateFormat="MMMM-yyyy"
-                    showMonthYearPicker
-                />
-                <DatePicker
-                    selected={startDate.year}
-                    onChange={(date) => changeDate(date, "year")}
-                    showYearPicker
-                    dateFormat="yyyy"
-                />
+                <Grid stackable columns={2} textAlign="center">
+                    <Grid.Row>
+                        <Grid.Column>
+                            <Segment className="datePickerDiv">
+                                <DatePicker
+                                    selected={startDate.month}
+                                    onChange={(date) => changeDate(date, "month")}
+                                    dateFormat="MMMM-yyyy"
+                                    showMonthYearPicker
+                                />
+                            </Segment>
+                        </Grid.Column>
+                        <Grid.Column>
+                            <Segment className="datePickerDiv">
+                                <DatePicker
+                                    selected={startDate.year}
+                                    onChange={(date) => changeDate(date, "year")}
+                                    showYearPicker
+                                    dateFormat="yyyy"
+                                />
+                            </Segment>
+                        </Grid.Column>
+                    </Grid.Row>
+                </Grid>
             </div>
             <div className="transactionDiv">
-                <TransactionAmount/>
+                <TransactionAmount />
                 {transaction.length > 0 ? (
-                    <TransactionList transactions = {transaction}/>
+                    <TransactionList transactions={transaction} />
                 ) : (
                         <div>No Transactions found</div>
                     )}
@@ -79,6 +91,7 @@ const mapStateToProps = (state) => {
         error: state.transaction.transactionLoadError,
         transactions: state.transaction.transactions,
         loading: state.transaction.loading,
+        submitSuccess: state.transaction.submitSuccess
     };
 };
 

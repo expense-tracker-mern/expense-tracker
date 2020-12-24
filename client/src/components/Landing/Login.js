@@ -6,7 +6,6 @@ import {
   Form,
   Grid,
   Header,
-  Image,
   Message,
   Segment,
 } from 'semantic-ui-react';
@@ -77,14 +76,9 @@ const Login = ({
               onChange={onFormValueChange}
             />
 
-            <Button
-              color="teal"
-              fluid
-              size="large"
-              onClick={() => submitLogin()}
-            >
+            <Form.Button color="teal" type="submit" fluid size="large">
               Login
-            </Button>
+            </Form.Button>
           </Segment>
         </Form>
         <Message>

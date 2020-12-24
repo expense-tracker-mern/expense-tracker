@@ -3,9 +3,10 @@ import {
   LOGIN_SUCCESS,
   REGISTER_FAIL,
   REGISTER_SUCCESS,
-  LOGOUT_USER,
+  LOGOUT_FAIL,
   LOADING_LOGIN,
   CLEAR_ERRORS,
+  LOGOUT_SUCCESS,
 } from '../actions/actionTypes';
 
 const initialState = {
@@ -15,7 +16,7 @@ const initialState = {
   errors: null,
 };
 
-export default function (state = initialState, action) {
+const reducer = (state = initialState, action) => {
   const { payload, type } = action;
 
   switch (type) {
@@ -39,9 +40,23 @@ export default function (state = initialState, action) {
         loading: false,
         errors: payload,
       };
-    case LOGOUT_USER:
+    case LOGOUT_SUCCESS:
       localStorage.removeItem('token');
-      return { ...state, isAuthenticated: false, loading: false, errors: null };
+      return {
+        ...state,
+        isAuthenticated: false,
+        loading: false,
+        errors: null,
+        token: null,
+      };
+    case LOGOUT_FAIL:
+      return {
+        ...state,
+        isAuthenticated: true,
+        token: localStorage.getItem('token'),
+        loading: false,
+        errors: null,
+      };
     case LOADING_LOGIN:
       return { ...state, loading: true };
     case CLEAR_ERRORS:
@@ -49,4 +64,6 @@ export default function (state = initialState, action) {
     default:
       return { ...state };
   }
-}
+};
+
+export default reducer;

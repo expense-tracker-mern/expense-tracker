@@ -1,13 +1,5 @@
-import {
-  REGISTER_SUCCESS,
-  REGISTER_FAIL,
-  LOGIN_FAIL,
-  LOGIN_SUCCESS,
-  LOGOUT_USER,
-  LOADING_LOGIN,
-  CLEAR_ERRORS,
-} from './actionTypes';
 import setAuthToken from '../utils/setAuthToken';
+import * as actionTypes from './actionTypes';
 
 import axios from 'axios';
 
@@ -21,11 +13,11 @@ export const setUser = () => async (dispatch) => {
 export const registerUser = (formData) => async (dispatch) => {
   try {
     dispatch({
-      type: LOADING_LOGIN,
+      type: actionTypes.LOADING_LOGIN,
     });
     const res = await axios.post('/api/auth/register', formData);
     dispatch({
-      type: REGISTER_SUCCESS,
+      type: actionTypes.REGISTER_SUCCESS,
       payload: res.data,
     });
 
@@ -40,7 +32,7 @@ export const registerUser = (formData) => async (dispatch) => {
     }
 
     dispatch({
-      type: REGISTER_FAIL,
+      type: actionTypes.REGISTER_FAIL,
       payload: errorsList,
     });
   }
@@ -49,12 +41,13 @@ export const registerUser = (formData) => async (dispatch) => {
 // Login User
 export const loginUser = (formData) => async (dispatch) => {
   try {
-    dispatch({ type: LOADING_LOGIN });
+    console.log('Login');
+    dispatch({ type: actionTypes.LOADING_LOGIN });
     console.log(formData);
     const res = await axios.post('/api/auth/login', formData);
     console.log(res.data);
     dispatch({
-      type: LOGIN_SUCCESS,
+      type: actionTypes.LOGIN_SUCCESS,
       payload: res.data,
     });
 
@@ -70,20 +63,27 @@ export const loginUser = (formData) => async (dispatch) => {
 
     console.log(errorsList);
     dispatch({
-      type: LOGIN_FAIL,
+      type: actionTypes.LOGIN_FAIL,
       payload: errorsList,
     });
   }
 };
 
-export const logoutUser = () => async (dispatch) => {
-  dispatch({
-    type: LOGOUT_USER,
-  });
+//logout user
+export const logout = () => async (dispatch) => {
+  try {
+    dispatch({
+      type: actionTypes.LOGOUT_SUCCESS,
+    });
+  } catch (error) {
+    dispatch({
+      type: actionTypes.LOGOUT_FAIL,
+    });
+  }
 };
 
 export const clearLoginErrors = () => async (dispatch) => {
   dispatch({
-    type: CLEAR_ERRORS,
+    type: actionTypes.CLEAR_ERRORS,
   });
 };

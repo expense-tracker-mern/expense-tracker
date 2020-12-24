@@ -7,7 +7,6 @@ export const getTransactions = (date, type) => async (dispatch) => {
     const config = {
       headers: {
         'x-auth-token': localStorage.token
-
       }
     }
     const transactions = await axios.get('api/transaction/all-transactions/' + type + '/' + date, config);
@@ -123,8 +122,13 @@ export const getTransactions = (date, type) => async (dispatch) => {
 };
 
 export const getTransactionTypes = () => async (dispatch) => {
+  const config = {
+    headers: {
+      'x-auth-token': localStorage.token
+    }
+  }
   try {
-    const res = await axios.get('/api/transaction-type/all');
+    const res = await axios.get('/api/transaction-type/all', config);
     let transactionTypeOptions = [];
     console.log(res.data);
 
@@ -150,7 +154,12 @@ export const getTransactionTypes = () => async (dispatch) => {
 
 export const getTransactionCategories = (type) => async (dispatch) => {
   try {
-    const res = await axios.get(`/api/category/${type}`);
+    const config = {
+      headers: {
+        'x-auth-token': localStorage.token
+      }
+    }
+    const res = await axios.get(`/api/category/${type}`,config);
     let categoryOptions = [];
 
     res.data.forEach((category) => {
@@ -176,11 +185,16 @@ export const getTransactionCategories = (type) => async (dispatch) => {
 
 export const submitTransaction = (formData) => async (dispatch) => {
   try {
+    const config = {
+      headers: {
+        'x-auth-token': localStorage.token
+      }
+    }
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_LOADING,
     });
     console.log(formData);
-    const res = await axios.post('api/transaction/', formData);
+    const res = await axios.post('api/transaction/', formData, config);
 
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_SUCCESS,
