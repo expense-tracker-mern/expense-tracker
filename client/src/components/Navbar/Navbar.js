@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { Menu, Dropdown } from 'semantic-ui-react';
 import TransactionModal from './TransactionModal';
-import { useHistory } from 'react-router-dom';
 import { logout } from '../../store/actions/auth';
+import { useHistory } from 'react-router-dom';
 
 const Navbar = ({ isAuthenticated, logout }) => {
   console.log(isAuthenticated);
