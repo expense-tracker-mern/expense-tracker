@@ -9,16 +9,38 @@ import {
   Message,
   Segment,
 } from 'semantic-ui-react';
-import { registerUser } from '../../store/actions/auth';
+import { registerUser, clearLoginErrors } from '../../store/actions/auth';
 
-const Register = ({ changeLoginForm, registerUser }) => {
-  const [name, changeName] = useState('');
-  const [email, changeEmail] = useState('');
-  const [password, changePassword] = useState('');
+const Register = ({
+  changeLoginForm,
+  registerUser,
+  loading,
+  errors,
+  clearLoginErrors,
+}) => {
+  const [registerForm, updateRegisterForm] = useState({});
 
   const submitForm = (e) => {
-    console.log('In Func');
-    registerUser({ name, email, password });
+    registerUser(registerForm);
+  };
+
+  const changeForm = () => {
+    clearLoginErrors();
+    updateRegisterForm({});
+    changeLoginForm(true);
+  };
+
+  const onFormValueChange = (event, result) => {
+    const { name, value } = result || event.target;
+
+    if (value === '') {
+      let formData = { ...registerForm };
+      delete formData[name];
+
+      updateRegisterForm({ ...formData });
+    } else {
+      updateRegisterForm({ ...registerForm, [name]: value });
+    }
   };
 
   return (
@@ -27,35 +49,40 @@ const Register = ({ changeLoginForm, registerUser }) => {
         <Header as="h2" color="teal" textAlign="center">
           Register
         </Header>
-        <Form size="large" onSubmit={(e) => submitForm(e)}>
+        <Form size="large" onSubmit={(e) => submitForm(e)} loading={loading}>
+          {errors !== null && (
+            <Message
+              visible={errors !== null}
+              negative
+              header="There was some errors with your submission"
+              list={errors}
+            />
+          )}
           <Segment stacked>
             <Form.Input
               fluid
-              icon="user"
+              name="name"
+              icon="address card"
               iconPosition="left"
               placeholder="Name"
-              onChange={(e) => {
-                changeName(e.target.value);
-              }}
+              onChange={onFormValueChange}
             />
             <Form.Input
               fluid
+              name="email"
               icon="user"
               iconPosition="left"
               placeholder="E-mail address"
-              onChange={(e) => {
-                changeEmail(e.target.value);
-              }}
+              onChange={onFormValueChange}
             />
             <Form.Input
               fluid
+              name="password"
               icon="lock"
               iconPosition="left"
               placeholder="Password"
               type="password"
-              onChange={(e) => {
-                changePassword(e.target.value);
-              }}
+              onChange={onFormValueChange}
             />
 
             <Button color="teal" fluid size="large">
@@ -66,10 +93,7 @@ const Register = ({ changeLoginForm, registerUser }) => {
         <Message floating>
           <strong>
             Already a user?{' '}
-            <a
-              style={{ cursor: 'pointer' }}
-              onClick={() => changeLoginForm(true)}
-            >
+            <a style={{ cursor: 'pointer' }} onClick={() => changeForm()}>
               Login
             </a>{' '}
           </strong>
@@ -79,4 +103,4 @@ const Register = ({ changeLoginForm, registerUser }) => {
   );
 };
 
-export default connect(null, { registerUser })(Register);
+export default connect(null, { registerUser, clearLoginErrors })(Register);

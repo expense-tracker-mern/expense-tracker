@@ -27,6 +27,7 @@ router.post(
   '/login',
   [
     check('email', 'Please include a valid Email').isEmail(),
+    check('email', 'Email is required').exists(),
     check('password', 'Password is required').exists(),
   ],
   async (req, res) => {
@@ -81,6 +82,7 @@ router.post(
 router.post(
   '/register',
   [
+    check('name', 'Please enter a Name').exists(),
     check('email', 'Please include a valid Email').isEmail(),
     check(
       'password',

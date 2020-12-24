@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { Menu, Dropdown } from 'semantic-ui-react';
+import { logoutUser } from '../../store/actions/auth';
 import TransactionModal from './TransactionModal';
 
-const Navbar = ({ isAuthenticated }) => {
+const Navbar = ({ isAuthenticated, logoutUser }) => {
   const [modalOpen, changeModalOpen] = useState(false);
 
   const addTransaction = (e) => {
     e.preventDefault();
+  };
+
+  const logout = () => {
+    logoutUser();
   };
 
   return (
@@ -29,7 +34,7 @@ const Navbar = ({ isAuthenticated }) => {
             <Dropdown item simple icon="user">
               <Dropdown.Menu>
                 <Dropdown.Item>Profile</Dropdown.Item>
-                <Dropdown.Item>Logout</Dropdown.Item>
+                <Dropdown.Item onClick={() => logout()}>Logout</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </Menu.Menu>
@@ -43,4 +48,4 @@ const mapStateToProps = (state) => ({
   isAuthenticated: state.auth.isAuthenticated,
 });
 
-export default connect(mapStateToProps, {})(Navbar);
+export default connect(mapStateToProps, { logoutUser })(Navbar);
