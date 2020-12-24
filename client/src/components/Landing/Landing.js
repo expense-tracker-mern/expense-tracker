@@ -5,20 +5,19 @@ import Register from './Register';
 import { connect } from 'react-redux';
 
 const Landing = ({ isAuthenticated }) => {
+  console.log(localStorage.token);
   const [isLoginForm, changeLoginForm] = useState(true);
 
-  if (isAuthenticated) {
-    return <Redirect to="/dashboard" />;
-  }
-
   return (
-    <Fragment>
-      {isLoginForm ? (
-        <Login changeLoginForm={changeLoginForm} />
-      ) : (
-        <Register changeLoginForm={changeLoginForm} />
-      )}
-    </Fragment>
+    localStorage.token ?
+      <Redirect to="/dashboard" /> :
+      <Fragment>
+        {isLoginForm ? (
+          <Login changeLoginForm={changeLoginForm} />
+        ) : (
+            <Register changeLoginForm={changeLoginForm} />
+          )}
+      </Fragment>
   );
 };
 

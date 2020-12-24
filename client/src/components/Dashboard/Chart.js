@@ -87,7 +87,7 @@ export const Chart = (props) => {
                 <h4>Income Categories (%)</h4>
             </div>
             <div className="doughnutDiv">
-                <Doughnut width={250} height={250}
+                <Doughnut width={250} height={250} 
                     options={{ maintainAspectRatio: false }} data={incomeData} />
             </div>
         </Segment>

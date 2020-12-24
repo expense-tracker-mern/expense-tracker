@@ -1,17 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { connect } from 'react-redux';
 import { Menu, Dropdown } from 'semantic-ui-react';
 import TransactionModal from './TransactionModal';
+import { Redirect } from 'react-router-dom';
+import {logout} from '../../store/actions/auth';
 
-const Navbar = ({ isAuthenticated }) => {
+const Navbar = ({ isAuthenticated, logout }) => {
+  console.log(isAuthenticated);
   const [modalOpen, changeModalOpen] = useState(false);
 
   const addTransaction = (e) => {
     e.preventDefault();
   };
 
+  const out = () => {
+    logout();
+    console.log(isAuthenticated);
+  }
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+        console.log('logout');
+    }
+}, [isAuthenticated]);
+
   return (
-    isAuthenticated && (
+    localStorage.token ? 
       <div>
         <Menu fixed="top" className="navbar">
           <Menu.Item as="a" header>
@@ -29,18 +43,18 @@ const Navbar = ({ isAuthenticated }) => {
             <Dropdown item simple icon="user">
               <Dropdown.Menu>
                 <Dropdown.Item>Profile</Dropdown.Item>
-                <Dropdown.Item>Logout</Dropdown.Item>
+                <Dropdown.Item onClick={out}>Logout</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </Menu.Menu>
         </Menu>
       </div>
-    )
-  );
+    : null
+  )
 };
 
 const mapStateToProps = (state) => ({
   isAuthenticated: state.auth.isAuthenticated,
 });
 
-export default connect(mapStateToProps, {})(Navbar);
+export default connect(mapStateToProps, {logout})(Navbar);

@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 
 export const TransactionAmount = (props) => {
     return (
-        <Grid columns="equal" textAlign="center">
+        <Grid stackable columns={3} textAlign="center">
             <Grid.Row>
                 <Grid.Column>
                     <Segment>

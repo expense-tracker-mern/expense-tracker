@@ -7,7 +7,6 @@ import {
 import dateFormat from 'dateformat';
 
 export const TransactionList = (props) => {
-    console.log(props);
     var dates = [];
     var present = false;
     return (

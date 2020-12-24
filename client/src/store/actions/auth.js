@@ -5,6 +5,7 @@ import {
   LOGIN_SUCCESS,
 } from './actionTypes';
 import setAuthToken from '../utils/setAuthToken';
+import * as actionTypes from './actionTypes';
 
 import axios from 'axios';
 
@@ -62,3 +63,16 @@ export const loginUser = (formData) => async (dispatch) => {
     });
   }
 };
+
+//logout user
+export const logout = () => async dispatch => {
+  try {
+      dispatch({
+          type: actionTypes.LOGOUT
+      })
+  } catch (error) {
+      dispatch({
+          type: actionTypes.LOGOUT_FAIL
+      })
+  }
+}

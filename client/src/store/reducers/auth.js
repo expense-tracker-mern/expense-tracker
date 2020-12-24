@@ -3,6 +3,8 @@ import {
   LOGIN_SUCCESS,
   REGISTER_FAIL,
   REGISTER_SUCCESS,
+  LOGOUT,
+  LOGOUT_FAIL
 } from '../actions/actionTypes';
 
 const initialState = {
@@ -11,7 +13,7 @@ const initialState = {
   loading: true,
 };
 
-export default function (state = initialState, action) {
+const reducer = (state = initialState, action) => {
   const { payload, type } = action;
 
   switch (type) {
@@ -23,7 +25,21 @@ export default function (state = initialState, action) {
     case LOGIN_FAIL:
       localStorage.removeItem('token');
       return { ...state, token: null, isAuthenticated: false, loading: false };
+    case LOGOUT:
+      return {
+        ...state,
+        isAuthenticated: false,
+        token: localStorage.removeItem('token'),
+      }
+    case LOGOUT_FAIL:
+      return {
+        ...state,
+        isAuthenticated: true,
+        token: localStorage.getItem('token'),
+      }
     default:
       return { ...state };
   }
 }
+
+export default reducer;
