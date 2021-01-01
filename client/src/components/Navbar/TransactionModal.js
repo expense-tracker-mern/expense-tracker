@@ -56,6 +56,7 @@ const TransactionModal = ({
   };
 
   useEffect(() => {
+    console.log('MODAL');
     if (mode === 'add') {
       updateTitle('Add Transaction');
       setForm({});

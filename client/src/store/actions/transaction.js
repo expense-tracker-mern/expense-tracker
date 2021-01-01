@@ -252,6 +252,7 @@ export const editTransaction = () => async (dispatch) => {
 
 export const openModal = (mode, prevTransaction = {}) => async (dispatch) => {
   console.log('OPEN');
+  console.log(mode);
   switch (mode) {
     case 'add':
       dispatch({

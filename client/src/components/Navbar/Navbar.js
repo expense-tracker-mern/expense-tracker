@@ -4,6 +4,7 @@ import { Menu, Dropdown, Icon } from 'semantic-ui-react';
 import { logout } from '../../store/actions/auth';
 import { useHistory } from 'react-router-dom';
 import { openModal } from '../../store/actions/transaction';
+import TransactionModal from './TransactionModal';
 
 const Navbar = ({ isAuthenticated, logout, openModal }) => {
   console.log(isAuthenticated);
@@ -45,6 +46,7 @@ const Navbar = ({ isAuthenticated, logout, openModal }) => {
           </Dropdown>
         </Menu.Menu>
       </Menu>
+      <TransactionModal />
     </div>
   ) : null;
 };
