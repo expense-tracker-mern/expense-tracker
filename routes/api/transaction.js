@@ -126,10 +126,11 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
   }
   try {
     let records = await Transaction.aggregate([
-      { $match : { user : user._id } },
+      { $match: { user: user._id } },
       {
         $project: {
           _id: '$_id',
+          name: '$name',
           category: '$category',
           user: '$user',
           type: '$type',
@@ -144,12 +145,13 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
         $match: {
           timeCriteria: {
             $eq: req.params.date,
-          }
+          },
         },
       },
       {
         $project: {
           _id: '$_id',
+          name: '$name',
           category: '$category',
           date: '$date',
           user: '$user',

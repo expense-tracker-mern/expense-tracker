@@ -4,7 +4,8 @@ const initialState = {
   transactionLoadError: null,
   transactionSubmitError: null,
   transactions: null,
-  loading: true,
+  transactionListLoading: false,
+  transactionModalLoading: false,
   total: 0,
   income: 0,
   expenses: 0,
@@ -12,7 +13,10 @@ const initialState = {
   incomeCategories: [],
   expenseCategories: [],
   types: [],
-  submitSuccess: false
+  submitSuccess: false,
+  modalOpen: false,
+  mode: 'add',
+  prevTransaction: {},
 };
 
 const reducer = (state = initialState, action) => {
@@ -25,7 +29,7 @@ const reducer = (state = initialState, action) => {
         total: action.total,
         income: action.income,
         expenses: action.expenses,
-        loading: action.loading,
+        transactionListLoading: false,
         incomeCategories: action.incomeCategories,
         expenseCategories: action.expenseCategories,
         amount: action.amount,
@@ -34,27 +38,62 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         transactionLoadError: action.error,
-        loading: action.loading,
+        transactionListLoading: false,
       };
+    case actionTypes.GET_TRANSACTIONS_LOADING:
+      return { ...state, transactionListLoading: true };
     case actionTypes.TRANSACTION_TYPE_LOADED:
       return { ...state, types: action.payload };
     case actionTypes.TRANSACTION_TYPE_ERROR:
       return { ...state, types: [] };
     case actionTypes.TRANSACTION_CATEGORY_LOADED:
-      return { ...state, categories: action.payload };
+      return {
+        ...state,
+        categories: action.payload,
+        transactionModalLoading: false,
+      };
     case actionTypes.TRANSACTION_CATEGORY_ERROR:
-      return { ...state, categories: [], loading: false };
+      return { ...state, categories: [], transactionModalLoading: false };
     case actionTypes.TRANSACTION_SUBMIT_ERROR:
       return {
         ...state,
         transactionSubmitError: action.payload,
-        loading: false,
-        submitSuccess: false
+        transactionModalLoading: false,
+        submitSuccess: false,
       };
     case actionTypes.TRANSACTION_SUBMIT_LOADING:
-      return { ...state, loading: true };
+      return { ...state, transactionModalLoading: true };
     case actionTypes.TRANSACTION_SUBMIT_SUCCESS:
-      return { ...state, loading: false, transactionSubmitError: null , submitSuccess: true};
+      return {
+        ...state,
+        transactionModalLoading: false,
+        transactionSubmitError: null,
+        submitSuccess: true,
+      };
+    case actionTypes.OPEN_ADD_MODAL:
+      return {
+        ...state,
+        transactionSubmitError: null,
+        transactionModalLoading: false,
+        modalOpen: true,
+        mode: 'add',
+      };
+    case actionTypes.OPEN_EDIT_MODAL:
+      return {
+        ...state,
+        modalOpen: true,
+        transactionModalLoading: false,
+        mode: 'edit',
+        prevTransaction: action.payload,
+      };
+    case actionTypes.CLOSE_MODAL:
+      return {
+        ...state,
+        transactionSubmitError: null,
+        modalOpen: false,
+        transactionModalLoading: false,
+        prevTransaction: {},
+      };
     default:
       return state;
   }

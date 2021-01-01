@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Icon, Form, Grid, Divider, Message } from 'semantic-ui-react';
+import { Modal, Form, Grid, Divider, Message } from 'semantic-ui-react';
 import {
   getTransactionTypes,
   getTransactionCategories,
   submitTransaction,
+  editTransaction,
+  closeModal,
 } from '../../store/actions/transaction';
 import { connect } from 'react-redux';
 
 const TransactionModal = ({
   modalOpen,
-  changeModalOpen,
+  mode,
   getTransactionTypes,
   getTransactionCategories,
   submitTransaction,
@@ -17,17 +19,25 @@ const TransactionModal = ({
   types,
   errors,
   loading,
+  prevTransaction,
+  closeModal,
 }) => {
-  const [form, setForm] = useState({});
-  const [type, onTypeChange] = useState('');
-  const [formSubmit, onFormsubmit] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    amount: '',
+    type: '',
+    category: '',
+  });
+  const [title, updateTitle] = useState('Add Transaction');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    submitTransaction(form);
-    console.log('TransactionSubmit');
-    if (errors === null) {
-      onFormsubmit(true);
+    console.log(mode);
+    if (mode === 'add') {
+      console.log(form);
+      submitTransaction(form);
+    } else {
+      editTransaction(prevTransaction, form);
     }
   };
 
@@ -36,42 +46,39 @@ const TransactionModal = ({
     setForm({ ...form, [name]: value });
 
     if (name === 'type') {
-      onTypeChange(value);
+      getTransactionCategories(value);
     }
-    if (name === 'amount' && value === '') {
-      let formData = form;
-      delete formData[name];
-      setForm({ ...formData });
-    }
+    // if (name === 'amount' && value === '') {
+    //   let formData = form;
+    //   delete formData[name];
+    //   setForm({ ...formData });
+    // }
   };
 
   useEffect(() => {
-    setForm({});
-    changeModalOpen(false);
-  }, [formSubmit]);
-
-  useEffect(() => {
+    if (mode === 'add') {
+      updateTitle('Add Transaction');
+      setForm({});
+    } else {
+      updateTitle('Edit Transaction');
+      setForm(prevTransaction);
+    }
     getTransactionTypes();
   }, [modalOpen]);
-
-  useEffect(() => {
-    getTransactionCategories(type);
-  }, [type]);
 
   return (
     <div>
       <Modal
         open={modalOpen}
         onClose={() => {
-          changeModalOpen(false);
+          closeModal();
         }}
-        trigger={<Icon size="large" name="add" className="add-icon" />}
         as={Form}
         onSubmit={(e) => {
           handleSubmit(e);
         }}
       >
-        <Modal.Header>Add a Transaction</Modal.Header>
+        <Modal.Header>{title}</Modal.Header>
         <Modal.Content>
           {errors !== null && (
             <Message
@@ -81,13 +88,6 @@ const TransactionModal = ({
               list={errors}
             />
           )}
-          {/* <Message
-            visible={errors.length > 0}
-            negative
-            header="ERROR"
-            list={errors}
-          /> */}
-          {console.log(errors)}
           <Form
             onSubmit={(e) => {
               handleSubmit(e);
@@ -99,6 +99,7 @@ const TransactionModal = ({
                 <Grid.Column>
                   <Form.Input
                     name="name"
+                    value={form['name']}
                     label="Name"
                     placeholder="Name"
                     onChange={onFormValueChange}
@@ -107,6 +108,7 @@ const TransactionModal = ({
                 <Grid.Column>
                   <Form.Input
                     name="amount"
+                    value={form.amount}
                     label="Transaction Amount"
                     placeholder="Amount"
                     onChange={onFormValueChange}
@@ -117,6 +119,7 @@ const TransactionModal = ({
                 <Grid.Column>
                   <Form.Select
                     name="type"
+                    value={form.type}
                     label="Transaction Type"
                     placeholder="Income"
                     options={types}
@@ -126,6 +129,7 @@ const TransactionModal = ({
                 <Grid.Column>
                   <Form.Select
                     name="category"
+                    value={form.category}
                     label="Transaction Category"
                     placeholder="Category"
                     options={categories}
@@ -141,7 +145,7 @@ const TransactionModal = ({
                       handleSubmit(e);
                     }}
                   >
-                    Submit
+                    {title}
                   </Form.Button>
                 </Grid.Column>
               </Grid.Row>
@@ -157,11 +161,16 @@ const mapStateToProps = (state) => ({
   types: state.transaction.types,
   categories: state.transaction.categories,
   errors: state.transaction.transactionSubmitError,
-  loading: state.transaction.loading,
+  loading: state.transaction.transactionModalLoading,
+  modalOpen: state.transaction.modalOpen,
+  mode: state.transaction.mode,
+  prevTransaction: state.transaction.prevTransaction,
 });
 
 export default connect(mapStateToProps, {
   getTransactionTypes,
   getTransactionCategories,
   submitTransaction,
+  editTransaction,
+  closeModal,
 })(TransactionModal);
