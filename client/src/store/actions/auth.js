@@ -4,8 +4,8 @@ import * as actionTypes from './actionTypes';
 import axios from 'axios';
 
 export const setUser = () => async (dispatch) => {
-  if (localStorage.token) {
-    setAuthToken(localStorage.token);
+  if (localStorage.accessToken) {
+    setAuthToken(localStorage.accessToken);
   }
 };
 
@@ -86,4 +86,24 @@ export const clearLoginErrors = () => async (dispatch) => {
   dispatch({
     type: actionTypes.CLEAR_ERRORS,
   });
+};
+
+// Refresh Token
+export const refreshToken = (token) => async (dispatch) => {
+  try {
+    const res = await axios.post('/api/auth/refresh-token', {"token" :token});
+    if(res.data.name === "TokenExpiredError"){
+      // dispatch({
+      //   type: actionTypes.TOKEN_EXPIRE,
+      // });
+      dispatch({
+        type: actionTypes.LOGOUT_SUCCESS,
+      });
+    }else{
+      setAuthToken(res.data.accessToken);
+      localStorage.setItem("accessToken",res.data.accessToken);
+    }
+  } catch (error) {   
+    console.log(error.response);
+  }
 };

@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 const Landing = ({ loading, errors, isAuthenticated }) => {
   const [isLoginForm, changeLoginForm] = useState(true);
-  return isAuthenticated ? (
+  return localStorage.accessToken ? (
     <Redirect to="/dashboard" />
   ) : (
     <Fragment>

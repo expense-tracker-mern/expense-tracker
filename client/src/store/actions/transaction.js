@@ -1,22 +1,17 @@
 import * as actionTypes from './actionTypes';
 import axios from 'axios';
 import dateFormat from 'dateformat';
+import setAuthToken from '../utils/setAuthToken';
+import {refreshToken} from './auth';
 
 export const getTransactions = (date, type) => async (dispatch) => {
   try {
-    const config = {
-      headers: {
-        'x-auth-token': localStorage.token,
-      },
-    };
+    setAuthToken(localStorage.accessToken);
+
     const transactions = await axios.get(
       'api/transaction/all-transactions/' + type + '/' + date,
-      config
     );
     console.log(transactions);
-    // const transactions = await axios.get(
-    //   'api/transaction/all-transactions/' + type + '/' + date
-    // );
 
     //Categories for pie charts
     let categories = Object.values(transactions.data).map((transaction) => ({
@@ -135,7 +130,10 @@ export const getTransactions = (date, type) => async (dispatch) => {
       amount: amount,
     });
   } catch (error) {
-    console.log(error);
+    console.log(error.response.status);
+    if(error.response.status === 401){
+      dispatch(refreshToken(localStorage.refreshToken));
+    }
     dispatch({
       type: actionTypes.GET_TRANSACTIONS_FAIL,
       error: error,
@@ -144,13 +142,9 @@ export const getTransactions = (date, type) => async (dispatch) => {
 };
 
 export const getTransactionTypes = () => async (dispatch) => {
-  const config = {
-    headers: {
-      'x-auth-token': localStorage.token,
-    },
-  };
+  setAuthToken(localStorage.accessToken);
   try {
-    const res = await axios.get('/api/transaction-type/all', config);
+    const res = await axios.get('/api/transaction-type/all');
     let transactionTypeOptions = [];
     console.log(res.data);
 
@@ -176,12 +170,8 @@ export const getTransactionTypes = () => async (dispatch) => {
 
 export const getTransactionCategories = (type) => async (dispatch) => {
   try {
-    const config = {
-      headers: {
-        'x-auth-token': localStorage.token,
-      },
-    };
-    const res = await axios.get(`/api/category/${type}`, config);
+    setAuthToken(localStorage.accessToken);
+    const res = await axios.get(`/api/category/${type}`);
     let categoryOptions = [];
 
     res.data.forEach((category) => {
@@ -199,6 +189,9 @@ export const getTransactionCategories = (type) => async (dispatch) => {
     console.log(res.data);
   } catch (err) {
     console.log(err);
+    if(err.response.status === 401){
+      dispatch(refreshToken(localStorage.refreshToken));
+    }
     dispatch({
       type: actionTypes.TRANSACTION_CATEGORY_ERROR,
     });
@@ -207,11 +200,7 @@ export const getTransactionCategories = (type) => async (dispatch) => {
 
 export const submitTransaction = (formData) => async (dispatch) => {
   try {
-    const config = {
-      headers: {
-        'x-auth-token': localStorage.token,
-      },
-    };
+    setAuthToken(localStorage.accessToken);
     const keys = Object.keys(formData);
     keys.forEach((key) => {
       if (formData[key] === '' || formData[key] === null) {
@@ -222,7 +211,7 @@ export const submitTransaction = (formData) => async (dispatch) => {
       type: actionTypes.TRANSACTION_SUBMIT_LOADING,
     });
     console.log(formData);
-    const res = await axios.post('api/transaction/', formData, config);
+    const res = await axios.post('api/transaction/', formData);
 
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_SUCCESS,
@@ -232,6 +221,9 @@ export const submitTransaction = (formData) => async (dispatch) => {
     });
     console.log(res);
   } catch (error) {
+    if(error.response.status === 401){
+      dispatch(refreshToken(localStorage.refreshToken));
+    }
     const errors = error.response.data.errors;
 
     let errorObject = [];

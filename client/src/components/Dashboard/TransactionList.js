@@ -43,13 +43,13 @@ export const TransactionList = (props) => {
                       <div style={{ display: 'flex' }}>
                         <h5
                           className={
-                            transaction.type.name === 'expense'
+                            transaction.type.name === 'Expense'
                               ? 'expenses'
                               : 'income'
                           }
                           style={{ marginRight: '10px' }}
                         >
-                          {transaction.type.name === 'expense' ? '-' : '+'}{' '}
+                          {transaction.type.name === 'Expense' ? '-' : '+'}{' '}
                           &#8377; {transaction.amount}
                         </h5>
                         <Icon

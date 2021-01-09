@@ -4,14 +4,20 @@ import { Container, Grid, Loader } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import Charts from './Chart';
 import Transaction from './Transaction';
+import { useHistory } from 'react-router-dom';
 
 import './Dashboard.css';
 import '../../../src/App.css';
 
 export const Dashboard = (props) => {
-  console.log(props.loading);
+    const history = useHistory();
+console.log(props.expire);
+    
+    if(props.expire){
+        history.push('/');
+    }
 
-  return localStorage.token ? (
+  return localStorage.accessToken ? (
     props.loading ? (
       <Loader active inline="centered" />
     ) : (
@@ -32,6 +38,7 @@ export const Dashboard = (props) => {
 const mapStateToProps = (state) => {
   return {
     loading: state.transaction.transactionListLoading,
+    expire: state.auth.expire
   };
 };
 

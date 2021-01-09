@@ -61,19 +61,51 @@ router.post(
         },
       };
 
-      jwt.sign(
+      let accessToken = jwt.sign(
         payload,
         config.get('jwtToken'),
-        { expiresIn: 360000 },
-        (err, token) => {
-          if (err) throw err;
-          res.json({ token });
-        }
+        { expiresIn: 1200 }
       );
+      let refreshToken = jwt.sign(
+        payload,
+        config.get('refreshToken'),
+        { expiresIn: "30d" }
+      );
+      res.json({accessToken, refreshToken});
     } catch (err) {
       console.log(err.message);
       res.status(500).send('Server error');
     }
+  }
+);
+
+//@route POST api/auth/refresh-token
+//Refresh token
+router.post(
+  '/refresh-token',
+  async (req, res) => {
+
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(403).json({ error: "Access denied,token is missing." });
+    }
+      try {
+        const payload = jwt.verify(token, config.get('refreshToken'));
+        const user = {
+          user: {
+            id: payload.user.id,
+          },
+        };
+        let accessToken = jwt.sign(
+          user,
+          config.get('jwtToken'),
+          { expiresIn: 1200 }
+        );
+        res.json({accessToken});
+      } catch (error) {
+        res.json(error);
+      }   
   }
 );
 

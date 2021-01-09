@@ -6,11 +6,13 @@ import { useHistory } from 'react-router-dom';
 import { openModal } from '../../store/actions/transaction';
 import TransactionModal from './TransactionModal';
 
-const Navbar = ({ isAuthenticated, logout, openModal }) => {
-  console.log(isAuthenticated);
+const Navbar = ({ isAuthenticated, logout, openModal, expire }) => {
+  
   // const [modalOpen, changeModalOpen] = useState(false);
 
   const history = useHistory();
+
+  console.log(expire);
 
   const addTransaction = (e) => {
     e.preventDefault();
@@ -25,8 +27,7 @@ const Navbar = ({ isAuthenticated, logout, openModal }) => {
     console.log('ADD');
     openModal('add');
   };
-  console.log(localStorage.token);
-  return localStorage.token ? (
+  return (localStorage.accessToken && expire === false) ? (
     <div>
       <Menu fixed="top" className="navbar">
         <Menu.Item as="a" header>
@@ -53,6 +54,7 @@ const Navbar = ({ isAuthenticated, logout, openModal }) => {
 
 const mapStateToProps = (state) => ({
   isAuthenticated: state.auth.isAuthenticated,
+  expire: state.auth.expire
 });
 
 export default connect(mapStateToProps, { logout, openModal })(Navbar);

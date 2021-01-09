@@ -7,13 +7,14 @@ import {
   LOADING_LOGIN,
   CLEAR_ERRORS,
   LOGOUT_SUCCESS,
+  TOKEN_EXPIRE
 } from '../actions/actionTypes';
 
 const initialState = {
-  token: localStorage.getItem('token'),
-  isAuthenticated: false,
+  token: localStorage.getItem('accessToken'),
   loading: false,
   errors: null,
+  expire: false
 };
 
 const reducer = (state = initialState, action) => {
@@ -22,38 +23,44 @@ const reducer = (state = initialState, action) => {
   switch (type) {
     case REGISTER_SUCCESS:
     case LOGIN_SUCCESS:
-      localStorage.setItem('token', payload.token);
+      localStorage.setItem('accessToken', payload.accessToken);
+      localStorage.setItem('refreshToken', payload.refreshToken);
       return {
         ...state,
         ...payload,
-        isAuthenticated: true,
         loading: false,
         errors: null,
+        expire: false,
       };
     case REGISTER_FAIL:
+    case TOKEN_EXPIRE:
+      return {
+        ...state,
+        expire: true
+      };
     case LOGIN_FAIL:
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       return {
         ...state,
         token: null,
-        isAuthenticated: false,
         loading: false,
         errors: payload,
       };
     case LOGOUT_SUCCESS:
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       return {
         ...state,
-        isAuthenticated: false,
         loading: false,
         errors: null,
         token: null,
+        expire: true
       };
     case LOGOUT_FAIL:
       return {
         ...state,
-        isAuthenticated: true,
-        token: localStorage.getItem('token'),
+        token: localStorage.getItem('accessToken'),
         loading: false,
         errors: null,
       };
