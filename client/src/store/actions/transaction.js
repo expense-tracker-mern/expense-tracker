@@ -2,14 +2,17 @@ import * as actionTypes from './actionTypes';
 import axios from 'axios';
 import dateFormat from 'dateformat';
 import setAuthToken from '../utils/setAuthToken';
-import {refreshToken} from './auth';
+import { refreshToken } from './auth';
 
+// ****************
+// Action to retrieve user transactions for specific month
+// ****************
 export const getTransactions = (date, type) => async (dispatch) => {
   try {
     setAuthToken(localStorage.accessToken);
 
     const transactions = await axios.get(
-      'api/transaction/all-transactions/' + type + '/' + date,
+      'api/transaction/all-transactions/' + type + '/' + date
     );
     console.log(transactions);
 
@@ -131,7 +134,7 @@ export const getTransactions = (date, type) => async (dispatch) => {
     });
   } catch (error) {
     console.log(error.response.status);
-    if(error.response.status === 401){
+    if (error.response.status === 401) {
       dispatch(refreshToken(localStorage.refreshToken));
     }
     dispatch({
@@ -141,6 +144,9 @@ export const getTransactions = (date, type) => async (dispatch) => {
   }
 };
 
+// ****************
+// Action to retrieve transaction Types
+// ****************
 export const getTransactionTypes = () => async (dispatch) => {
   setAuthToken(localStorage.accessToken);
   try {
@@ -168,6 +174,9 @@ export const getTransactionTypes = () => async (dispatch) => {
   }
 };
 
+// ****************
+// Action to retrieve transaction categories for specific type
+// ****************
 export const getTransactionCategories = (type) => async (dispatch) => {
   try {
     setAuthToken(localStorage.accessToken);
@@ -189,7 +198,7 @@ export const getTransactionCategories = (type) => async (dispatch) => {
     console.log(res.data);
   } catch (err) {
     console.log(err);
-    if(err.response.status === 401){
+    if (err.response.status === 401) {
       dispatch(refreshToken(localStorage.refreshToken));
     }
     dispatch({
@@ -198,6 +207,9 @@ export const getTransactionCategories = (type) => async (dispatch) => {
   }
 };
 
+// ****************
+// Action to submit a new Transaction
+// ****************
 export const submitTransaction = (formData) => async (dispatch) => {
   try {
     setAuthToken(localStorage.accessToken);
@@ -207,11 +219,27 @@ export const submitTransaction = (formData) => async (dispatch) => {
         delete formData[key];
       }
     });
+
+    let file = new FormData();
+    if (formData['file'] !== null) {
+      file.append('file', formData.file, formData.file.name);
+      delete formData['file'];
+    }
+
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_LOADING,
     });
-    console.log(formData);
-    const res = await axios.post('api/transaction/', formData);
+
+    const resData = await axios.post('api/transaction/', formData);
+    console.log(resData);
+
+    if (formData['file'] !== null) {
+      const resFile = await axios.post(
+        `/api/transaction/file/${resData.data._id}`,
+        file
+      );
+      console.log(resFile);
+    }
 
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_SUCCESS,
@@ -219,12 +247,20 @@ export const submitTransaction = (formData) => async (dispatch) => {
     dispatch({
       type: actionTypes.CLOSE_MODAL,
     });
-    console.log(res);
+    // console.log(resData);
+    // console.log(resFile);
   } catch (error) {
-    if(error.response.status === 401){
+    if (error.response.status === 401) {
       dispatch(refreshToken(localStorage.refreshToken));
     }
-    const errors = error.response.data.errors;
+    console.log(error.response);
+
+    let errors = null;
+    if (error.response.data.hasOwnProperty('errors')) {
+      errors = error.response.data.errors;
+    } else {
+      //do something for file upload error
+    }
 
     let errorObject = [];
     errors.forEach((e) => {
@@ -242,6 +278,9 @@ export const editTransaction = () => async (dispatch) => {
   console.log('EDIT');
 };
 
+// ****************
+// Action to open transaction modal
+// ****************
 export const openModal = (mode, prevTransaction = {}) => async (dispatch) => {
   console.log('OPEN');
   console.log(mode);
@@ -257,11 +296,20 @@ export const openModal = (mode, prevTransaction = {}) => async (dispatch) => {
         payload: prevTransaction,
       });
       break;
+    case 'delete':
+      dispatch({
+        type: actionTypes.OPEN_DELETE_MODAL,
+        payload: prevTransaction,
+      });
+      break;
     default:
       return;
   }
 };
 
+// ****************
+// Action to close transaction modal
+// ****************
 export const closeModal = () => async (dispatch) => {
   dispatch({
     type: actionTypes.CLOSE_MODAL,
@@ -282,4 +330,22 @@ export const openEditModal = (currTransaction) => async (dispatch) => {
     type: actionTypes.OPEN_EDIT_MODAL,
     payload: transactionObject,
   });
+};
+
+export const getFile = (currTransaction) => async (dispatch) => {
+  try {
+    const config = {
+      headers: {
+        'x-auth-token': localStorage.token,
+      },
+    };
+    const file = await axios.get(
+      `/api/transaction/file/${currTransaction._id}`,
+      config
+    );
+
+    console.log(file);
+  } catch (error) {
+    console.log(error);
+  }
 };

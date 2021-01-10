@@ -34,7 +34,6 @@ router.get('/:type', auth, async (req, res) => {
     const transactionType = await TransactionType.findOne({
       name: req.params.type,
     });
-    console.log(transactionType);
     const categories = await Category.find({ type: transactionType._id });
     res.json(categories);
   } catch (err) {

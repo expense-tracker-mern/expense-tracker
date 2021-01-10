@@ -27,6 +27,17 @@ const TransactionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  file: {
+    originalName: {
+      type: String,
+    },
+    fileName: {
+      type: String,
+    },
+    path: {
+      type: String,
+    },
+  },
 });
 
 module.exports = Transaction = mongoose.model('transaction', TransactionSchema);

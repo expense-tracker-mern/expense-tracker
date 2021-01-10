@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Form, Grid, Divider, Message } from 'semantic-ui-react';
 import {
   getTransactionTypes,
@@ -8,6 +8,9 @@ import {
   closeModal,
 } from '../../store/actions/transaction';
 import { connect } from 'react-redux';
+import DateFnsUtils from '@date-io/date-fns';
+import SemanticDatepicker from 'react-semantic-ui-datepickers';
+import 'react-semantic-ui-datepickers/dist/react-semantic-ui-datepickers.css';
 
 const TransactionModal = ({
   modalOpen,
@@ -27,8 +30,11 @@ const TransactionModal = ({
     amount: '',
     type: '',
     category: '',
+    date: '',
+    file: null,
   });
   const [title, updateTitle] = useState('Add Transaction');
+  const fileInputRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -42,12 +48,19 @@ const TransactionModal = ({
   };
 
   const onFormValueChange = (event, result) => {
-    const { name, value } = result || event.target;
-    setForm({ ...form, [name]: value });
+    const { name, value, files } = result || event.target;
 
     if (name === 'type') {
       getTransactionCategories(value);
     }
+    if (name === 'file') {
+      console.log(files[0]);
+      console.log(form);
+      setForm({ ...form, [name]: event.target.files[0] });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+    console.log(form);
     // if (name === 'amount' && value === '') {
     //   let formData = form;
     //   delete formData[name];
@@ -57,15 +70,35 @@ const TransactionModal = ({
 
   useEffect(() => {
     console.log('MODAL');
-    if (mode === 'add') {
-      updateTitle('Add Transaction');
-      setForm({});
-    } else {
-      updateTitle('Edit Transaction');
-      setForm(prevTransaction);
+    switch (mode) {
+      case 'add':
+        updateTitle('Add Transaction');
+        setForm({});
+        break;
+      case 'edit':
+        updateTitle('Edit Transaction');
+        setForm(prevTransaction);
+        break;
+      case 'delete':
+        updateTitle('Delete Transaction');
+        setForm(prevTransaction);
+        break;
+      default:
+        return;
     }
+    // if (mode === 'add') {
+    //   updateTitle('Add Transaction');
+    //   setForm({});
+    // } else {
+    //   updateTitle('Edit Transaction');
+    //   setForm(prevTransaction);
+    // }
     getTransactionTypes();
   }, [modalOpen]);
+
+  // const fileChange = () => {
+  //   console.log('test');
+  // };
 
   return (
     <div>
@@ -136,6 +169,38 @@ const TransactionModal = ({
                     options={categories}
                     onChange={onFormValueChange}
                   ></Form.Select>
+                </Grid.Column>
+              </Grid.Row>
+              <Grid.Row>
+                <Grid.Column>
+                  <SemanticDatepicker
+                    locale="en-US"
+                    name="date"
+                    onChange={onFormValueChange}
+                    type="basic"
+                    format="DD-MM-YYYY"
+                    label="Transaction Date"
+                    className="formDate"
+                  />
+                </Grid.Column>
+                <Grid.Column>
+                  <Form.Button
+                    fluid
+                    name="file"
+                    label="Transaction Receipt"
+                    type="button"
+                    content="Upload File"
+                    labelPosition="left"
+                    icon="file"
+                    onClick={() => fileInputRef.current.click()}
+                  />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    name="file"
+                    hidden
+                    onChange={onFormValueChange}
+                  />
                 </Grid.Column>
               </Grid.Row>
               <Divider />

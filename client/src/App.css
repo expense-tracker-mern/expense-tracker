@@ -18,3 +18,7 @@ i.add.large.icon.add-icon {
 .edit-transaction:hover {
   cursor: pointer;
 }
+
+.formDate {
+  width: 100%;
+}

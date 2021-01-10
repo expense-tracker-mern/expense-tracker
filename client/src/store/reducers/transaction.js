@@ -86,6 +86,14 @@ const reducer = (state = initialState, action) => {
         mode: 'edit',
         prevTransaction: action.payload,
       };
+    case actionTypes.OPEN_DELETE_MODAL:
+      return {
+        ...state,
+        modalOpen: true,
+        transactionModalLoading: false,
+        mode: 'delete',
+        prevTransaction: action.payload,
+      };
     case actionTypes.CLOSE_MODAL:
       return {
         ...state,

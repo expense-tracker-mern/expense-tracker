@@ -3,15 +3,22 @@ import { connect } from 'react-redux';
 import { List, Image, Divider, Icon } from 'semantic-ui-react';
 import dateFormat from 'dateformat';
 import TransactionModal from '../Navbar/TransactionModal';
-import { openEditModal } from '../../store/actions/transaction';
+import { openModal, getFile } from '../../store/actions/transaction';
 
 export const TransactionList = (props) => {
   var dates = [];
   var present = false;
 
   const openEdit = (currTransaction) => {
-    props.openEditModal(currTransaction);
+    // props.openEditModal(currTransaction);
+    props.openModal('edit', currTransaction);
   };
+
+  const openDeleteModal = (transaction) => {
+    // props.openModal('delete');
+    props.getFile(transaction);
+  };
+
   return (
     <Fragment>
       <List relaxed>
@@ -58,6 +65,14 @@ export const TransactionList = (props) => {
                           size="large"
                           onClick={() => openEdit(transaction)}
                         />
+                        <Icon
+                          name="trash"
+                          size="large"
+                          onClick={() => openDeleteModal(transaction)}
+                        />
+                        {transaction['file'] && (
+                          <Icon name="file" size="large" />
+                        )}
                       </div>
                     </List.Content>
                     <Image
@@ -80,4 +95,4 @@ export const TransactionList = (props) => {
   );
 };
 
-export default connect(null, { openEditModal })(TransactionList);
+export default connect(null, { openModal, getFile })(TransactionList);
