@@ -62,16 +62,16 @@ export const TransactionList = (props) => {
                         <Icon
                           className="edit-transaction"
                           name="edit"
-                          size="large"
+                          size="10"
                           onClick={() => openEdit(transaction)}
                         />
                         <Icon
                           name="trash"
-                          size="large"
+                          size="10"
                           onClick={() => openDeleteModal(transaction)}
                         />
                         {transaction['file'] && (
-                          <Icon name="file" size="large" />
+                          <Icon name="file" size="10" />
                         )}
                       </div>
                     </List.Content>

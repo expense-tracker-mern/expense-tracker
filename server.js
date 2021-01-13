@@ -1,6 +1,5 @@
 const express = require('express');
 const connectDB = require('./config/db');
-const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -8,14 +7,13 @@ const app = express();
 connectDB();
 
 //Init middleware
-app.use(express.json({ extended: false }));
+// for parsing application/json
+app.use(express.json({ extended: false })); 
 
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
+// for parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true })); 
+
+app.use(express.static('public'));
 
 app.get('/', (req, res) => res.send('API Running'));
 
