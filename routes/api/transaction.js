@@ -11,88 +11,92 @@ const User = require('../../models/User');
 const Category = require('../../models/Category');
 const TransactionType = require('../../models/TransactionType');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-      cb(null, "uploads");
-  },
-  filename: (req, file, cb) => {
-      const fileName = file.originalname.toLowerCase().split(' ').join('-');
-      cb(null, uuid() + '-' + fileName)
-  }
-});
-
-var upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-      if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "application/pdf") {
-          cb(null, true);
-      } else {
-          cb(null, false);
-          req.fileValidationError = "Only .png, .jpg, .jpeg and .pdf formats allowed";
-      }
-  }
-});
 
 // @route   POST api/transaction
 // @desc    Add a new transaction
 // @access  Private
 router.post(
-  '/',upload.single('file'),
+  '/',
   auth,
-  [
-    check('category', 'Category is required').exists(),
-    check('type', 'Type is required').exists(),
-    check('amount', 'Amount is required').exists(),
-  ],
   async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty() || req.fileValidationError) {
-      let err = [];
-      if(!errors.isEmpty()){
-        errors.array().forEach(i => {
-          err.push(i.msg);
-        });
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => {
+          cb(null, "uploads");
+      },
+      filename: (req, file, cb) => {
+          const fileName = file.originalname.toLowerCase().split(' ').join('-');
+          cb(null, uuid() + '-' + fileName)
       }
-      if(req.fileValidationError){
-        console.log(req.fileValidationError);
-        err.push(req.fileValidationError);
-      }
-      return res.status(400).json({ errors: err });
-    }
-    try { 
+    });
+    
+    var upload = multer({
+      storage: storage,
+      fileFilter: (req, file, cb) => {
+          if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "application/pdf") {
+              cb(null, true);
+          } else {
+              cb(null, false);
+              req.fileValidationError = "Only .png, .jpg, .jpeg and .pdf formats allowed";
+          }
+      },
+    }).single('file');
+    
+    upload(req, res, async function (err) {
       let { name, category, amount, type, date } = req.body;
-
-      const categoryObject = await Category.findOne({ name: category });
-      const typeObject = await TransactionType.findOne({ name: type });
-
-      if (date === undefined) {
-        date = new Date();
+      let errors = [];
+      if(req.fileValidationError){
+        errors.push(req.fileValidationError);
       }
-
-      if (name === undefined) {
-        name = category + '_' + type + '_' + date;
+      if(category === undefined) {
+        errors.push('Category is required')
       }
-
-      const transaction = new Transaction({
-        category : categoryObject.id,
-        amount : amount,
-        type : typeObject.id,
-        date : date,
-        user : req.user.id,
-        name : name,
-        file: {
-          originalName : req.file ? req.file.originalname : null,
-          fileName : req.file ? req.file.filename : null,
-          path : req.file ? req.file.path : null
+      if(amount === undefined) {
+        errors.push('Amount is required')
+      }
+      if(type === undefined) {
+        errors.push('Type is required')
+      }
+      if(errors.length > 0){
+        return res.status(400).json({ errors: errors });
+      }
+      if (err instanceof multer.MulterError) {
+        return res.status(500).json({errors: 'Unable to upload File'});
+      } else if (err) {
+        return res.status(500).json({errors: 'Unable to upload File'});
+      }
+      try {
+        const categoryObject = await Category.findOne({ name: category });
+        const typeObject = await TransactionType.findOne({ name: type });
+  
+        if (date === undefined) {
+          date = new Date();
         }
-      });
-      await transaction.save();
-
-      res.json(transaction);
-    } catch (err) {
-      console.log(err.message);
-      res.status(500).send(err.message);
-    }
+  
+        if (name === undefined) {
+          name = category + '_' + type + '_' + date;
+        }
+  
+        const transaction = new Transaction({
+          category : categoryObject.id,
+          amount : amount,
+          type : typeObject.id,
+          date : date,
+          user : req.user.id,
+          name : name,
+          file: {
+            originalName : req.file ? req.file.originalname : null,
+            fileName : req.file ? req.file.filename : null,
+            path : req.file ? req.file.path : null
+          }
+        });
+        await transaction.save();
+  
+        res.json(transaction);
+      } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+      }
+    });
   }
 );
 
