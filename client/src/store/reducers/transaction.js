@@ -15,6 +15,10 @@ const initialState = {
   types: [],
   submitSuccess: false,
   modalOpen: false,
+  invoiceModalOpen: false,
+  invoiceFile: null,
+  fileType: null,
+  transaction: null,
   mode: 'add',
   prevTransaction: {},
 };
@@ -55,6 +59,7 @@ const reducer = (state = initialState, action) => {
     case actionTypes.TRANSACTION_CATEGORY_ERROR:
       return { ...state, categories: [], transactionModalLoading: false };
     case actionTypes.TRANSACTION_SUBMIT_ERROR:
+    case actionTypes.TRANSACTION_EDIT_ERROR:
       return {
         ...state,
         transactionSubmitError: action.payload,
@@ -62,8 +67,10 @@ const reducer = (state = initialState, action) => {
         submitSuccess: false,
       };
     case actionTypes.TRANSACTION_SUBMIT_LOADING:
+    case actionTypes.TRANSACTION_EDIT_LOADING:
       return { ...state, transactionModalLoading: true };
     case actionTypes.TRANSACTION_SUBMIT_SUCCESS:
+    case actionTypes.TRANSACTION_EDIT_SUCCESS:
       return {
         ...state,
         transactionModalLoading: false,
@@ -101,6 +108,21 @@ const reducer = (state = initialState, action) => {
         modalOpen: false,
         transactionModalLoading: false,
         prevTransaction: {},
+      };
+    case actionTypes.SHOW_INVOICE:
+      return {
+        ...state,
+        invoiceModalOpen: true,
+        invoiceFile: action.payload.file,
+        fileType: action.payload.type,
+        transaction: action.payload.transaction,
+      };
+    case actionTypes.CLOSE_INVOICE:
+      return {
+        ...state,
+        invoiceModalOpen: false,
+        invoiceFile: null,
+        fileType: null,
       };
     default:
       return state;

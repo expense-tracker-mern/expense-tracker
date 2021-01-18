@@ -22,3 +22,13 @@ i.add.large.icon.add-icon {
 .formDate {
   width: 100%;
 }
+
+.invoice-modal {
+  height: 75%;
+  overflow: auto;
+}
+
+.invoice-file {
+  max-width: 100%;
+  height: auto;
+}

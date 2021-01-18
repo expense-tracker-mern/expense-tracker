@@ -133,7 +133,8 @@ export const getTransactions = (date, type) => async (dispatch) => {
       amount: amount,
     });
   } catch (error) {
-    console.log(error.response.status);
+    console.log(error);
+    console.log(error.response);
     if (error.response.status === 401) {
       dispatch(refreshToken(localStorage.refreshToken));
     }
@@ -215,31 +216,26 @@ export const submitTransaction = (formData) => async (dispatch) => {
     setAuthToken(localStorage.accessToken);
     const keys = Object.keys(formData);
     keys.forEach((key) => {
-      if (formData[key] === '' || formData[key] === null) {
+      if (
+        formData[key] === '' ||
+        formData[key] === null ||
+        formData[key] === undefined
+      ) {
         delete formData[key];
       }
     });
 
-    let file = new FormData();
-    if (formData['file'] !== null) {
-      file.append('file', formData.file, formData.file.name);
-      delete formData['file'];
-    }
+    let reqBody = new FormData();
+    const keys1 = Object.keys(formData);
+    keys1.forEach((key) => {
+      reqBody.append(key, formData[key]);
+    });
 
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_LOADING,
     });
 
-    const resData = await axios.post('api/transaction/', formData);
-    console.log(resData);
-
-    if (formData['file'] !== null) {
-      const resFile = await axios.post(
-        `/api/transaction/file/${resData.data._id}`,
-        file
-      );
-      console.log(resFile);
-    }
+    const resData = await axios.post('api/transaction/', reqBody);
 
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_SUCCESS,
@@ -247,26 +243,31 @@ export const submitTransaction = (formData) => async (dispatch) => {
     dispatch({
       type: actionTypes.CLOSE_MODAL,
     });
-    // console.log(resData);
-    // console.log(resFile);
   } catch (error) {
     if (error.response.status === 401) {
       dispatch(refreshToken(localStorage.refreshToken));
     }
-    console.log(error.response);
-
-    let errors = null;
-    if (error.response.data.hasOwnProperty('errors')) {
-      errors = error.response.data.errors;
-    } else {
-      //do something for file upload error
-    }
+    const errors = error.response.data.errors;
+    let fileError = false;
+    errors.forEach((err) => {
+      const fileErrorMsg = err;
+      if (fileErrorMsg.toLowerCase().contains('file upload unsuccessful')) {
+        fileError = true;
+      }
+    });
 
     let errorObject = [];
     errors.forEach((e) => {
-      errorObject.push(e.msg);
+      errorObject.push(e);
     });
 
+    if (fileError) {
+      // Need to handle this.
+      dispatch({
+        type: actionTypes.TRANSACTION_NEW_FILE_ERROR,
+        payload: errorObject,
+      });
+    }
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_ERROR,
       payload: errorObject,
@@ -274,8 +275,32 @@ export const submitTransaction = (formData) => async (dispatch) => {
   }
 };
 
-export const editTransaction = () => async (dispatch) => {
-  console.log('EDIT');
+// ****************
+// Action to edit Transaction
+// ****************
+export const editTransaction = (transaction) => async (dispatch) => {
+  // File upload change not allowed yet in this.
+  try {
+    setAuthToken(localStorage.accessToken);
+
+    dispatch({
+      type: actionTypes.TRANSACTION_EDIT_LOADING,
+    });
+
+    const resData = await axios.put('api/transaction/', transaction);
+
+    dispatch({
+      type: actionTypes.TRANSACTION_EDIT_SUCCESS,
+    });
+    dispatch({
+      type: actionTypes.CLOSE_MODAL,
+    });
+  } catch (err) {
+    console.log(err);
+    dispatch({
+      type: actionTypes.TRANSACTION_EDIT_ERROR,
+    });
+  }
 };
 
 // ****************
@@ -316,6 +341,12 @@ export const closeModal = () => async (dispatch) => {
   });
 };
 
+export const closeInvoice = () => async (dispatch) => {
+  dispatch({
+    type: actionTypes.CLOSE_INVOICE,
+  });
+};
+
 export const openEditModal = (currTransaction) => async (dispatch) => {
   let transactionObject = {};
   transactionObject.amount = currTransaction.amount;
@@ -334,18 +365,61 @@ export const openEditModal = (currTransaction) => async (dispatch) => {
 
 export const getFile = (currTransaction) => async (dispatch) => {
   try {
-    const config = {
-      headers: {
-        'x-auth-token': localStorage.token,
-      },
-    };
-    const file = await axios.get(
+    setAuthToken(localStorage.accessToken);
+    const res = await axios.get(
       `/api/transaction/file/${currTransaction._id}`,
-      config
+      { responseType: 'arraybuffer' }
+    );
+    const base64 = btoa(
+      new Uint8Array(res.data).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        ''
+      )
     );
 
-    console.log(file);
+    let fileDetails = {
+      type: res.headers['content-type'].includes('image') ? 'image' : 'pdf',
+      file: res.headers['content-type'].includes('image')
+        ? 'data:;base64,' + base64
+        : 'data:application/pdf;base64,' + base64 + '#view=FitH&view=FitV',
+      transaction: currTransaction,
+    };
+    dispatch({
+      type: actionTypes.SHOW_INVOICE,
+      payload: fileDetails,
+    });
   } catch (error) {
     console.log(error);
+  }
+};
+
+// ****************
+// Action to upload receipt
+// ****************
+export const uploadTransactionFile = (transactionID, transactionFile) => async (
+  dispatch
+) => {
+  try {
+    setAuthToken(localStorage.accessToken);
+    const file = new FormData();
+    file.append('file', transactionFile);
+
+    const res = await axios.put(`api/transaction/file/${transactionID}`, file);
+    console.log(res);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// ****************
+// Action to open transaction modal
+// To do - Add Dispatch
+// ****************
+export const deleteTransactionFile = (transactionID) => async (dispatch) => {
+  try {
+    setAuthToken(localStorage.accessToken);
+    const res = await axios.delete(`/api/transaction/file/${transactionID}`);
+  } catch (err) {
+    console.log(err);
   }
 };

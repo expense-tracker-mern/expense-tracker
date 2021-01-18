@@ -5,119 +5,130 @@ const { check, validationResult } = require('express-validator');
 const multer = require('multer');
 const fs = require('fs');
 const uuid = require('uuid').v4;
+const path = require('path');
 
 const Transaction = require('../../models/Transaction');
 const User = require('../../models/User');
 const Category = require('../../models/Category');
 const TransactionType = require('../../models/TransactionType');
 
-
 // @route   POST api/transaction
 // @desc    Add a new transaction
 // @access  Private
-router.post(
-  '/',
-  auth,
-  async (req, res) => {
-    const storage = multer.diskStorage({
-      destination: (req, file, cb) => {
-          cb(null, "uploads");
-      },
-      filename: (req, file, cb) => {
-          const fileName = file.originalname.toLowerCase().split(' ').join('-');
-          cb(null, uuid() + '-' + fileName)
+router.post('/', auth, async (req, res) => {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads');
+    },
+    filename: (req, file, cb) => {
+      const fileName = file.originalname.toLowerCase().split(' ').join('-');
+      cb(null, uuid() + '-' + fileName);
+    },
+  });
+
+  var upload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+      if (
+        file.mimetype == 'image/png' ||
+        file.mimetype == 'image/jpg' ||
+        file.mimetype == 'image/jpeg' ||
+        file.mimetype == 'application/pdf'
+      ) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+        req.fileValidationError =
+          'Only .png, .jpg, .jpeg and .pdf file formats allowed';
       }
-    });
-    
-    var upload = multer({
-      storage: storage,
-      fileFilter: (req, file, cb) => {
-          if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype == "application/pdf") {
-              cb(null, true);
-          } else {
-              cb(null, false);
-              req.fileValidationError = "Only .png, .jpg, .jpeg and .pdf formats allowed";
-          }
-      },
-    }).single('file');
-    
-    upload(req, res, async function (err) {
-      let { name, category, amount, type, date } = req.body;
-      let errors = [];
-      if(req.fileValidationError){
-        errors.push(req.fileValidationError);
+    },
+  }).single('file');
+
+  upload(req, res, async function (err) {
+    let { name, category, amount, type, date } = req.body;
+    let errors = [];
+    if (req.fileValidationError) {
+      errors.push(req.fileValidationError);
+    }
+    if (category === undefined) {
+      errors.push('Category is required');
+    }
+    if (amount === undefined) {
+      errors.push('Amount is required');
+    }
+    if (type === undefined) {
+      errors.push('Type is required');
+    }
+    if (errors.length > 0) {
+      return res.status(400).json({ errors: errors });
+    }
+
+    try {
+      const categoryObject = await Category.findOne({ name: category });
+      const typeObject = await TransactionType.findOne({ name: type });
+
+      if (date === undefined) {
+        date = new Date();
       }
-      if(category === undefined) {
-        errors.push('Category is required')
+
+      if (name === undefined) {
+        name = category + '_' + type + '_' + date;
       }
-      if(amount === undefined) {
-        errors.push('Amount is required')
-      }
-      if(type === undefined) {
-        errors.push('Type is required')
-      }
-      if(errors.length > 0){
-        return res.status(400).json({ errors: errors });
-      }
+
+      const transaction = new Transaction({
+        category: categoryObject.id,
+        amount: amount,
+        type: typeObject.id,
+        date: date,
+        user: req.user.id,
+        name: name,
+        file: {
+          originalName: req.file ? req.file.originalname : null,
+          fileName: req.file ? req.file.filename : null,
+          path: req.file ? req.file.path : null,
+        },
+      });
+      await transaction.save();
+
       if (err instanceof multer.MulterError) {
-        return res.status(500).json({errors: 'Unable to upload File'});
+        console.log('File Upload error: ', err);
+        errors.push('File upload unsuccessful');
+        return res.status(500).json({ errors: errors });
       } else if (err) {
-        return res.status(500).json({errors: 'Unable to upload File'});
+        console.log('File Upload error: ', err);
+        errors.push('File upload unsuccessful');
+        return res.status(500).json({ errors: errors });
       }
-      try {
-        const categoryObject = await Category.findOne({ name: category });
-        const typeObject = await TransactionType.findOne({ name: type });
-  
-        if (date === undefined) {
-          date = new Date();
-        }
-  
-        if (name === undefined) {
-          name = category + '_' + type + '_' + date;
-        }
-  
-        const transaction = new Transaction({
-          category : categoryObject.id,
-          amount : amount,
-          type : typeObject.id,
-          date : date,
-          user : req.user.id,
-          name : name,
-          file: {
-            originalName : req.file ? req.file.originalname : null,
-            fileName : req.file ? req.file.filename : null,
-            path : req.file ? req.file.path : null
-          }
-        });
-        await transaction.save();
-  
-        res.json(transaction);
-      } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
-      }
-    });
-  }
-);
+
+      res.json(transaction);
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).send(err.message);
+    }
+  });
+});
 
 // @route   PUT api/transaction
 // @desc    Edit an existing transaction
 // @access  Private
 router.put('/', auth, async (req, res) => {
   try {
-    const { category, amount, type, date } = req.body;
+    const { id, name, category, amount, type, date } = req.body;
 
     if (date === null) {
       date = new Date();
     }
+    const categoryObject = await Category.findOne({ name: category });
+    const typeObject = await TransactionType.findOne({ name: type });
 
     const transactionFields = {};
-    transactionFields.category = category;
+    transactionFields.name = name;
     transactionFields.amount = amount;
-    transactionFields.type = type;
+    transactionFields.category = categoryObject.id;
+    transactionFields.type = typeObject.id;
     transactionFields.date = date;
 
-    let transaction = await Transaction.findById(req.user.id);
+    let transaction = await Transaction.findById(id);
 
     if (!transaction) {
       return res
@@ -126,7 +137,7 @@ router.put('/', auth, async (req, res) => {
     }
 
     transaction = await Transaction.findOneAndUpdate(
-      { _id: req.user.id },
+      { _id: id },
       { $set: transactionFields },
       { new: true }
     );
@@ -143,6 +154,7 @@ router.put('/', auth, async (req, res) => {
 // @access  Private
 router.delete('/', auth, async (req, res) => {
   try {
+    // Todo - Add delete file as well
     await Transaction.findByIdAndDelete(req.user.id);
 
     res.json({ msg: 'Transaction Deleted!' });
@@ -221,73 +233,132 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
   }
 });
 
-// // @route   POST api/transaction
-// // @desc    Add a new transaction
-// // @access  Private
-// router.post('/file/:id', auth, async (req, res) => {
-//   var storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//       cb(null, 'uploads');
-//     },
-//     filename: function (req, file, cb) {
-//       cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
-//     },
-//   });
+// @route   POST api/transaction
+// @desc    Add a new transaction
+// @access  Private
+router.delete('file/"transactionID', auth, async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(transactionID);
 
-//   var upload = multer({ storage: storage, limits: 5000000 }).single('file');
+    if (transaction.file.path === null) {
+      return res.status(404).json({ msg: 'No File uploaded for transaction!' });
+    }
+    const path = transaction.path;
 
-//   upload(req, res, async function (err) {
-//     if (err instanceof multer.MulterError) {
-//       console.log('Multer', err);
-//       return res.status(500).json(err);
-//     } else if (err) {
-//       console.log('err', err);
-//       return res.status(500).json(err);
-//     }
+    const transactionFields = {
+      ...transaction,
+      file: {
+        originalName: null,
+        fileName: null,
+        path: null,
+      },
+    };
 
-//     let transaction = await Transaction.findById(req.params.id);
+    transaction = await Transaction.findOneAndUpdate(
+      { _id: transactionID },
+      { $set: transactionFields },
+      { new: true }
+    );
 
-//     if (!transaction) {
-//       fs.unlink(req.file.path, (err) => {
-//         if (err) {
-//           console.log(err);
-//         }
-//       });
-//       return res
-//         .status(400)
-//         .json({ msg: 'There is no transaction for this user' });
-//     }
-//     const uploadFile = req.file;
-//     let fileDetails = { file: {} };
-//     fileDetails.file.originalName = uploadFile.originalname;
-//     fileDetails.file.fileName = uploadFile.filename;
-//     fileDetails.file.path = uploadFile.path;
+    fs.unlinkSync(path);
+    res.json(transaction);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+});
 
-//     transaction = await Transaction.findOneAndUpdate(
-//       { _id: req.params.id },
-//       { $set: fileDetails },
-//       { new: true }
-//     );
+// @route   GET api/transaction/file/:id
+// @desc    Get uploaded file for transaction
+// @access  Private
+router.put('/file/:id', auth, async (req, res) => {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'uploads');
+    },
+    filename: (req, file, cb) => {
+      const fileName = file.originalname.toLowerCase().split(' ').join('-');
+      cb(null, uuid() + '-' + fileName);
+    },
+  });
 
-//     return res.status(200).send(req.file);
-//   });
-// });
+  var upload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+      if (
+        file.mimetype == 'image/png' ||
+        file.mimetype == 'image/jpg' ||
+        file.mimetype == 'image/jpeg' ||
+        file.mimetype == 'application/pdf'
+      ) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+        req.fileValidationError =
+          'Only .png, .jpg, .jpeg and .pdf file formats allowed';
+      }
+    },
+  }).single('file');
 
-// // @route   POST api/transaction
-// // @desc    Add a new transaction
-// // @access  Private
-// router.get('/file/:id', auth, async (req, res) => {
-//   try {
-//     let transaction = await Transaction.findById(req.params.id);
+  upload(req, res, async function (err) {
+    try {
+      if (req.fileValidationError) {
+        errors.push(req.fileValidationError);
+      }
+      if (errors.length > 0) {
+        return res.status(400).json({ errors: errors });
+      }
 
-//     const filePath = transaction.file.path;
-//     const fileOriginalName = transaction.file.originalName;
+      let transaction = await Transaction.findById(req.params.id);
 
-//     res.sendFile(path.join(__dirname, '../..', filePath));
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).send(err.message);
-//   }
-// });
+      if (!transaction) {
+        return res
+          .status(400)
+          .json({ msg: 'There is no transaction for this user' });
+      }
+
+      const file = {
+        originalName: req.file ? req.file.originalname : null,
+        fileName: req.file ? req.file.filename : null,
+        path: req.file ? req.file.path : null,
+      };
+
+      transaction = await Transaction.findOneAndUpdate(
+        { _id: transaction.id },
+        { $set: file },
+        { new: true }
+      );
+
+      if (err instanceof multer.MulterError) {
+        console.log('File Upload error: ', err);
+        errors.push('File upload unsuccessful');
+        return res.status(500).json({ errors: errors });
+      } else if (err) {
+        console.log('File Upload error: ', err);
+        errors.push('File upload unsuccessful');
+        return res.status(500).json({ errors: errors });
+      }
+
+      res.json(transaction);
+    } catch (err) {
+      console.log(err);
+      res.status(500).send(err.message);
+    }
+  });
+});
+
+// @route   GET api/transaction/file/:id
+// @desc    Get uploaded file for transaction
+// @access  Private
+router.get('/file/:id', auth, async (req, res) => {
+  try {
+    let transaction = await Transaction.findById(req.params.id);
+    const filePath = transaction.file.path;
+    res.sendFile(path.join(__dirname, '../../', filePath));
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+});
 
 module.exports = router;

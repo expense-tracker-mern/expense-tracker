@@ -60,12 +60,6 @@ const TransactionModal = ({
     } else {
       setForm({ ...form, [name]: value });
     }
-    console.log(form);
-    // if (name === 'amount' && value === '') {
-    //   let formData = form;
-    //   delete formData[name];
-    //   setForm({ ...formData });
-    // }
   };
 
   useEffect(() => {
