@@ -24,7 +24,7 @@ export const Transaction = (props) => {
       startDate.date ? startDate.date : dateFormat(startDate.month, 'mm-yyyy'),
       startDate.type
     );
-  }, [getTransactions, startDate, props.submitSuccess]);
+  }, [getTransactions, startDate, props.submitSuccess, props.uploaded]);
 
   const transaction = props.transactions || {};
   console.log(transaction);
@@ -53,6 +53,7 @@ export const Transaction = (props) => {
           <Grid.Row>
             <Grid.Column>
               <Segment className="datePickerDiv">
+                  <p><strong>Select Month</strong></p>
                 <DatePicker
                   selected={startDate.month}
                   onChange={(date) => changeDate(date, 'month')}
@@ -63,6 +64,7 @@ export const Transaction = (props) => {
             </Grid.Column>
             <Grid.Column>
               <Segment className="datePickerDiv">
+              <p><strong>Select Year</strong></p>
                 <DatePicker
                   selected={startDate.year}
                   onChange={(date) => changeDate(date, 'year')}
@@ -91,6 +93,7 @@ const mapStateToProps = (state) => {
     error: state.transaction.transactionLoadError,
     transactions: state.transaction.transactions,
     submitSuccess: state.transaction.submitSuccess,
+    uploaded: state.transaction.uploaded
   };
 };
 

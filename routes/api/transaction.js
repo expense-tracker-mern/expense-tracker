@@ -75,6 +75,16 @@ router.post('/', auth, async (req, res) => {
         name = category + '_' + type + '_' + date;
       }
 
+      var file = {};
+
+      if(req.file){
+        file = {
+          originalName: req.file.originalname,
+          fileName:req.file.filename,
+          path: req.file.path,
+        }
+      }
+
       const transaction = new Transaction({
         category: categoryObject.id,
         amount: amount,
@@ -82,11 +92,7 @@ router.post('/', auth, async (req, res) => {
         date: date,
         user: req.user.id,
         name: name,
-        file: {
-          originalName: req.file ? req.file.originalname : null,
-          fileName: req.file ? req.file.filename : null,
-          path: req.file ? req.file.path : null,
-        },
+        file: req.file ? file : null
       });
       await transaction.save();
 
@@ -233,12 +239,12 @@ router.get('/all-transactions/:type/:date', auth, async (req, res) => {
   }
 });
 
-// @route   POST api/transaction
-// @desc    Add a new transaction
+// @route   DELETE file/:id
+// @desc    Delete a receipt
 // @access  Private
-router.delete('file/"transactionID', auth, async (req, res) => {
+router.delete('file/:transactionID', auth, async (req, res) => {
   try {
-    const transaction = await Transaction.findById(transactionID);
+    const transaction = await Transaction.findById(req.params.transactionID);
 
     if (transaction.file.path === null) {
       return res.status(404).json({ msg: 'No File uploaded for transaction!' });
@@ -247,11 +253,7 @@ router.delete('file/"transactionID', auth, async (req, res) => {
 
     const transactionFields = {
       ...transaction,
-      file: {
-        originalName: null,
-        fileName: null,
-        path: null,
-      },
+      file: null
     };
 
     transaction = await Transaction.findOneAndUpdate(
@@ -268,8 +270,8 @@ router.delete('file/"transactionID', auth, async (req, res) => {
   }
 });
 
-// @route   GET api/transaction/file/:id
-// @desc    Get uploaded file for transaction
+// @route   PUT api/transaction/file/:id
+// @desc    Add a receipt
 // @access  Private
 router.put('/file/:id', auth, async (req, res) => {
   const storage = multer.diskStorage({
@@ -302,6 +304,7 @@ router.put('/file/:id', auth, async (req, res) => {
 
   upload(req, res, async function (err) {
     try {
+      var errors = [];
       if (req.fileValidationError) {
         errors.push(req.fileValidationError);
       }
@@ -324,8 +327,8 @@ router.put('/file/:id', auth, async (req, res) => {
       };
 
       transaction = await Transaction.findOneAndUpdate(
-        { _id: transaction.id },
-        { $set: file },
+        { _id: transaction._id },
+        { $set: {file : file } },
         { new: true }
       );
 
@@ -341,7 +344,7 @@ router.put('/file/:id', auth, async (req, res) => {
 
       res.json(transaction);
     } catch (err) {
-      console.log(err);
+      console.log(err.message);
       res.status(500).send(err.message);
     }
   });
@@ -356,7 +359,7 @@ router.get('/file/:id', auth, async (req, res) => {
     const filePath = transaction.file.path;
     res.sendFile(path.join(__dirname, '../../', filePath));
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
     res.status(500).send(err.message);
   }
 });

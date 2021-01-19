@@ -27,6 +27,7 @@ export const OPEN_ADD_MODAL = 'OPEN_ADD_MODAL';
 export const OPEN_EDIT_MODAL = 'OPEN_EDIT_MODAL';
 export const OPEN_DELETE_MODAL = 'OPEN_DELETE_MODAL';
 export const CLOSE_MODAL = 'CLOSE_MODAL';
+export const UPLOAD_RECEIPT = 'UPLOAD_RECEIPT';
 
 export const SHOW_INVOICE = 'SHOW_INVOICE';
 export const CLOSE_INVOICE = 'CLOSE_INVOICE';

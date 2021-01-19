@@ -1,6 +1,6 @@
 import React, { Fragment, useRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { List, Image, Divider, Icon, Dropdown } from 'semantic-ui-react';
+import { List, Image, Divider, Dropdown } from 'semantic-ui-react';
 import dateFormat from 'dateformat';
 import TransactionModal from '../Navbar/TransactionModal';
 import {
@@ -27,11 +27,11 @@ export const TransactionList = (props) => {
     props.getFile(transaction);
   };
 
-  const uploadFile = (event, result) => {
-    const file = result || event.target;
-    updateFile(file[0]);
-
-    props.uploadTransactionFile(transId, transFile);
+  const uploadFile = (event,id) => {
+      console.log(transId);
+      if(event.target.files[0]){
+        props.uploadTransactionFile(transId, event.target.files[0]);
+      }
   };
 
   const showInvoice = (transaction) => {
@@ -80,7 +80,7 @@ export const TransactionList = (props) => {
                           {transaction.type.name === 'Expense' ? '-' : '+'}{' '}
                           &#8377; {transaction.amount}
                         </h5>
-                        <Dropdown icon="chevron circle down">
+                        <Dropdown icon="ellipsis vertical">
                           <Dropdown.Menu>
                             <Dropdown.Item
                               icon="edit"
@@ -99,7 +99,7 @@ export const TransactionList = (props) => {
                                 text="Add Receipt"
                                 onClick={() => {
                                   fileInputRef.current.click();
-                                  setTransaction(transaction.id);
+                                  setTransaction(transaction._id);
                                 }}
                               />
                             )}
@@ -108,7 +108,7 @@ export const TransactionList = (props) => {
                               type="file"
                               name="file"
                               hidden
-                              onChange={uploadFile}
+                              onChange={e => uploadFile(e)}
                             />
                             {transaction['file'] && (
                               <Dropdown.Item

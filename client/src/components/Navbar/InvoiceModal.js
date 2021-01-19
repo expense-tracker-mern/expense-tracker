@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { closeInvoice } from '../../store/actions/transaction';
+import dateFormat from 'dateformat';
 
 const InvoiceModal = ({
   showInvoice,
@@ -22,7 +23,7 @@ const InvoiceModal = ({
       className="invoice-modal"
     >
       <Modal.Header>
-        Invoice for {transaction.name} - {transaction.date}
+        Invoice for {transaction.name} - {dateFormat(transaction.date, 'mmmm dS, yyyy')}
       </Modal.Header>
       <Modal.Content>
         {fileType === 'image' && (

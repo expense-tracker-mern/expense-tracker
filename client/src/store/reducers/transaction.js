@@ -21,6 +21,7 @@ const initialState = {
   transaction: null,
   mode: 'add',
   prevTransaction: {},
+  uploaded: false
 };
 
 const reducer = (state = initialState, action) => {
@@ -37,6 +38,7 @@ const reducer = (state = initialState, action) => {
         incomeCategories: action.incomeCategories,
         expenseCategories: action.expenseCategories,
         amount: action.amount,
+        uploaded: false
       };
     case actionTypes.GET_TRANSACTIONS_FAIL:
       return {
@@ -59,6 +61,12 @@ const reducer = (state = initialState, action) => {
     case actionTypes.TRANSACTION_CATEGORY_ERROR:
       return { ...state, categories: [], transactionModalLoading: false };
     case actionTypes.TRANSACTION_SUBMIT_ERROR:
+      return {
+        ...state,
+        transactionSubmitError: action.payload,
+        transactionModalLoading: false,
+        submitSuccess: false,
+      };
     case actionTypes.TRANSACTION_EDIT_ERROR:
       return {
         ...state,
@@ -77,6 +85,10 @@ const reducer = (state = initialState, action) => {
         transactionSubmitError: null,
         submitSuccess: true,
       };
+    case actionTypes.UPLOAD_RECEIPT:
+      return {
+        ...state, uploaded : true
+      }
     case actionTypes.OPEN_ADD_MODAL:
       return {
         ...state,

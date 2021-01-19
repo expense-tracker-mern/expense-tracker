@@ -230,13 +230,10 @@ export const submitTransaction = (formData) => async (dispatch) => {
     keys1.forEach((key) => {
       reqBody.append(key, formData[key]);
     });
-
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_LOADING,
     });
-
     const resData = await axios.post('api/transaction/', reqBody);
-
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_SUCCESS,
     });
@@ -247,30 +244,9 @@ export const submitTransaction = (formData) => async (dispatch) => {
     if (error.response.status === 401) {
       dispatch(refreshToken(localStorage.refreshToken));
     }
-    const errors = error.response.data.errors;
-    let fileError = false;
-    errors.forEach((err) => {
-      const fileErrorMsg = err;
-      if (fileErrorMsg.toLowerCase().contains('file upload unsuccessful')) {
-        fileError = true;
-      }
-    });
-
-    let errorObject = [];
-    errors.forEach((e) => {
-      errorObject.push(e);
-    });
-
-    if (fileError) {
-      // Need to handle this.
-      dispatch({
-        type: actionTypes.TRANSACTION_NEW_FILE_ERROR,
-        payload: errorObject,
-      });
-    }
     dispatch({
       type: actionTypes.TRANSACTION_SUBMIT_ERROR,
-      payload: errorObject,
+      payload: error.response.data.errors,
     });
   }
 };
@@ -403,11 +379,14 @@ export const uploadTransactionFile = (transactionID, transactionFile) => async (
     setAuthToken(localStorage.accessToken);
     const file = new FormData();
     file.append('file', transactionFile);
-
+    console.log(file);
     const res = await axios.put(`api/transaction/file/${transactionID}`, file);
     console.log(res);
+    dispatch({
+      type: actionTypes.UPLOAD_RECEIPT
+    })
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
   }
 };
 
